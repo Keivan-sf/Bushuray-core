@@ -11,6 +11,16 @@ import (
 	"os"
 )
 
+type TcpMessage struct {
+	Msg  string          `json:"msg"`
+	Data json.RawMessage `json:"data"`
+}
+
+type AddConfig struct {
+	Uri     string `json:"uri"`
+	GroupId uint   `json:"group_id"`
+}
+
 func main() {
 	listen, err := net.Listen("tcp", "127.0.0.1:4897")
 	if err != nil {
@@ -61,13 +71,23 @@ func handleConnection(conn net.Conn) {
 			return
 		}
 
-		var data any
+		var raw_tcp_message TcpMessage
 
-		if err := json.Unmarshal(payload, &data); err != nil {
+		if err := json.Unmarshal(payload, &raw_tcp_message); err != nil {
 			log.Printf("Invalid JSON: %v", err)
 			return
 		}
 
-		log.Println(data)
+		switch raw_tcp_message.Msg {
+		case "add-config":
+			var data AddConfig
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for add-config %v", err)
+				return
+			}
+			log.Println(data)
+		default:
+			log.Println("Message not supported")
+		}
 	}
 }
