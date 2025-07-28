@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bushuray-core/db"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -22,6 +23,7 @@ type AddConfig struct {
 }
 
 func main() {
+	db.Initialize()
 	listen, err := net.Listen("tcp", "127.0.0.1:4897")
 	if err != nil {
 		log.Fatal(err)
