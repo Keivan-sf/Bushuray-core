@@ -1,6 +1,7 @@
 package db
 
 import (
+	"bushuray-core/structs"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,40 +10,44 @@ import (
 	"sync"
 )
 
-type Group struct {
-	Id              int    `json:"id"`
-	SubscriptionUrl string `json:"subscription_url"`
-	Name            string `json:"name"`
-	LastId          int    `json:"last_id"`
-}
-
 type DB struct {
 	Path string
 	mu   sync.Mutex
 }
 
-func (db *DB) AddConfig() {
-	groupData, err := db.getGroupConfig(0)
+func (db *DB) AddConfig(data structs.AddConfigData) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	group_data, err := db.getGroupConfig(data.GroupId)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	fmt.Println(groupData)
+	group_data.LastId++
+	config_id := group_data.LastId
+	err = os.Remove(db.GetConfigFilePath(group_data.Id, config_id))
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("error is ok: not found")
+		}
+		return err
+	}
+	fmt.Println("removed the file")
+	return nil
 }
 
-func (db *DB) getGroupConfig(id int) (Group, error) {
-	fmt.Println("db path is in get group config is:", db.Path)
-	var groupData Group
-	groupConfDir := filepath.Join(db.Path, "groups", strconv.Itoa(id), "group_config.json")
-	data, err := os.ReadFile(groupConfDir)
+func (db *DB) getGroupConfig(id int) (structs.Group, error) {
+	var group_data structs.Group
+	group_conf_dir := db.GetGroupConfigFilePath(id)
+	data, err := os.ReadFile(group_conf_dir)
 	if err != nil {
-		return groupData, err
+		return group_data, err
 	}
-	err = json.Unmarshal(data, &groupData)
+	err = json.Unmarshal(data, &group_data)
 	if err != nil {
 		err = fmt.Errorf("Failed to parse json group data for %d: %w", id, err)
-		return groupData, err
+		return group_data, err
 	}
-	return groupData, nil
+	return group_data, nil
 }
 
 func (db *DB) Initialize() {
@@ -66,7 +71,7 @@ func (db *DB) Initialize() {
 		panic("failed to create database directory " + dirPath + ": " + err.Error())
 	}
 
-	group := Group{
+	group := structs.Group{
 		Id:              0,
 		Name:            "Default",
 		SubscriptionUrl: "",
@@ -84,4 +89,12 @@ func (db *DB) Initialize() {
 	}
 
 	fmt.Println("default group config initialized:", filePath)
+}
+
+func (db *DB) GetGroupConfigFilePath(group_id int) string {
+	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), "group_config.json")
+}
+
+func (db *DB) GetConfigFilePath(group_id int, config_id int) string {
+	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), fmt.Sprintf("%d.json", config_id))
 }

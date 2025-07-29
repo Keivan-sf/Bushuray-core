@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bushuray-core/db"
+	"bushuray-core/structs"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -15,11 +16,6 @@ import (
 type TcpMessage struct {
 	Msg  string          `json:"msg"`
 	Data json.RawMessage `json:"data"`
-}
-
-type AddConfigData struct {
-	Uri     string `json:"uri"`
-	GroupId uint   `json:"group_id"`
 }
 
 func main() {
@@ -83,12 +79,12 @@ func handleConnection(conn net.Conn, dataBase db.DB) {
 
 		switch raw_tcp_message.Msg {
 		case "add-config":
-			var data AddConfigData
+			var data structs.AddConfigData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
 				log.Printf("Invalid body for add-config %v", err)
 				return
 			}
-			dataBase.AddConfig()	
+			dataBase.AddConfig(data)
 			log.Println(data)
 		default:
 			log.Println("Message not supported")

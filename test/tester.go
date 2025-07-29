@@ -20,7 +20,7 @@ func main() {
 	conn, _ := net.Dial("tcp", "127.0.0.1:4897")
 	defer conn.Close()
 
-	send(conn, Message[AddConfig]{Msg: "add-config", Data: AddConfig{Uri: "vless://testuri", GroupId: 1}})
+	send(conn, Message[AddConfig]{Msg: "add-config", Data: AddConfig{Uri: "vless://testuri", GroupId: 0}})
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
 }
