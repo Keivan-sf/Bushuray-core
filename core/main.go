@@ -14,10 +14,6 @@ import (
 	"os"
 )
 
-type TcpMessage struct {
-	Msg  string          `json:"msg"`
-	Data json.RawMessage `json:"data"`
-}
 
 func main() {
 	database := db.DB{}
@@ -72,7 +68,7 @@ func handleConnection(conn net.Conn, database *db.DB) {
 			return
 		}
 
-		var raw_tcp_message TcpMessage
+		var raw_tcp_message structs.TCPMessage
 
 		if err := json.Unmarshal(payload, &raw_tcp_message); err != nil {
 			log.Printf("Invalid JSON: %v", err)
@@ -94,8 +90,7 @@ func handleConnection(conn net.Conn, database *db.DB) {
 				log.Printf("Invalid body for delete-profiles %v", err)
 				return
 			}
-			log.Println(data)
-			log.Println(command_handler.DeleteProfiles(data))
+			command_handler.DeleteProfiles(data)
 
 		default:
 			log.Println("Message not supported")

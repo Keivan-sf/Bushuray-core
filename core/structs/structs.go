@@ -1,5 +1,7 @@
 package structs
 
+import "encoding/json"
+
 // database types
 type DBAddProfileData struct {
 	Uri      string `json:"uri"`
@@ -52,4 +54,16 @@ type Profile struct {
 type ProfileID struct {
 	Id      int `json:"id"`
 	GroupId int `json:"group_id"`
+}
+
+
+type TCPMessage struct {
+	Msg  string          `json:"msg"`
+	Data json.RawMessage `json:"data"`
+}
+
+
+type Message[T any] struct {
+	Msg  string `json:"msg"`
+	Data T      `json:"data"`
 }
