@@ -54,7 +54,8 @@ func main() {
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
 
-	<-listen_finished
+	// <-listen_finished
+	select {}
 }
 
 func send(conn net.Conn, obj any) {
