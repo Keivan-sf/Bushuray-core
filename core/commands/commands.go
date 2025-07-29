@@ -15,6 +15,16 @@ type Cmd struct {
 	DB        *db.DB
 }
 
+func (cmd *Cmd) AddGroup(data structs.AddGroupData) {
+	group_added, err := cmd.DB.AddGroup(data.Name, data.SubscriptionUrl)
+	if err != nil {
+		log.Printf("there was an error adding group %s", err.Error())
+		// handle err
+		return
+	}
+	cmd.send("group-added", group_added)
+}
+
 func (cmd *Cmd) AddProfiles(data structs.AddProfilesData) {
 	var profiles_added structs.ProfilesAdded = lib.AddProfiles(cmd.DB, data)
 	cmd.send("profiles-added", profiles_added)

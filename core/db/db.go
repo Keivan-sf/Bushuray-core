@@ -16,8 +16,57 @@ type DB struct {
 	mu   sync.Mutex
 }
 
-func (db *DB) AddGroup(name string, subscription_url string) {
+func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded, error) {
+	var group_added structs.GroupAdded
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	db_config, err := db.loadDBConfig()
+	if err != nil {
+		return group_added, err
+	}
+	db_config.LastGroupId++
+	err = db.saveDBConfig(db_config)
+	if err != nil {
+		return group_added, err
+	}
 
+	group_id := db_config.LastGroupId
+	group_dir_path := db.GetGroupDirPath(group_id)
+	group_config_path := db.GetGroupConfigFilePath(group_id)
+	err = os.RemoveAll(group_dir_path)
+	if err != nil {
+		return group_added, err
+	}
+
+	err = os.MkdirAll(group_dir_path, 0755)
+	if err != nil {
+		return group_added, err
+	}
+
+	group := structs.Group{
+		Id:              group_id,
+		SubscriptionUrl: subscription_url,
+		Name:            name,
+		LastId:          0,
+	}
+
+	group_json, err := json.MarshalIndent(group, "", " ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(group_config_path, group_json, 0644)
+	if err != nil {
+		return group_added, fmt.Errorf("failed to write %s: %w", group_config_path, err)
+	}
+
+	group_added = structs.GroupAdded{
+		Id:              group_id,
+		Name:            name,
+		SubscriptionUrl: subscription_url,
+	}
+
+	return group_added, nil
 }
 
 func (db *DB) DeleteProfile(group_id int, id int) error {
@@ -44,7 +93,10 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		return profile_added, err
 	}
 	group_data.LastId++
-	db.saveGroupConfig(group_data)
+	err = db.saveGroupConfig(group_data)
+	if err != nil {
+		return profile_added, err
+	}
 
 	profile_id := group_data.LastId
 	profile_path := db.GetProfileFilePath(group_data.Id, profile_id)
@@ -213,6 +265,10 @@ func (db *DB) ensureDBConfigExistance() {
 
 func (db *DB) GetDBConfigFile() string {
 	return filepath.Join(db.Path, "config.json")
+}
+
+func (db *DB) GetGroupDirPath(group_id int) string {
+	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id))
 }
 
 func (db *DB) GetGroupConfigFilePath(group_id int) string {

@@ -19,12 +19,17 @@ type Message[T any] struct {
 	Data T      `json:"data"`
 }
 
-type AddProfiles struct {
+type AddGroupData struct {
+	Name            string `json:"name"`
+	SubscriptionUrl string `json:"subscription_url"`
+}
+
+type AddProfilesData struct {
 	Uris    string `json:"uris"`
 	GroupId uint   `json:"group_id"`
 }
 
-type DeleteProfiles struct {
+type DeleteProfilesData struct {
 	Profiles []ProfileID `json:"profiles"`
 }
 
@@ -44,15 +49,20 @@ func main() {
 
 	go listen(conn, listen_finished)
 
-	send(conn, Message[AddProfiles]{Msg: "add-profiles", Data: AddProfiles{
-		Uris:    "vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]t.me/ConfigsHub\n vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]different0name",
-		GroupId: 0}})
+	// send(conn, Message[AddProfiles]{Msg: "add-profiles", Data: AddProfiles{
+	// 	Uris:    "vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]t.me/ConfigsHub\n vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]different0name",
+	// 	GroupId: 0}})
 
 	// send(conn, Message[DeleteProfiles]{Msg: "delete-profiles", Data: DeleteProfiles{
 	// 	Profiles: []ProfileID{{Id: 10, GroupId: 0}, {Id: 11, GroupId: 0}},
 	// }})
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
+
+	send(conn, Message[AddGroupData]{Msg: "add-group", Data: AddGroupData{
+		Name:            "new_group",
+		SubscriptionUrl: "https://none",
+	}})
 
 	// <-listen_finished
 	select {}

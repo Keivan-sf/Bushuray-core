@@ -36,9 +36,15 @@ type ProfileAdded struct {
 	Uri      string `json:"uri"`
 }
 
-type AddGroup struct {
+type AddGroupData struct {
 	Name            string `json:"name"`
 	SubscriptionUrl string `json:"subscription_url"`
+}
+
+type GroupAdded struct {
+	Id              int    `json:"id"`
+	SubscriptionUrl string `json:"subscription_url"`
+	Name            string `json:"name"`
 }
 
 // general types

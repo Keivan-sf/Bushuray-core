@@ -146,6 +146,15 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			command_handler.DeleteProfiles(data)
 
+		case "add-group":
+			log.Println("add group command received")
+			var data structs.AddGroupData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for add-group %v", err)
+				return
+			}
+			command_handler.AddGroup(data)
+
 		default:
 			log.Println("Message not supported")
 		}
