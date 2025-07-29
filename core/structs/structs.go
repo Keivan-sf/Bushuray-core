@@ -36,7 +36,16 @@ type ProfileAdded struct {
 	Uri      string `json:"uri"`
 }
 
+type AddGroup struct {
+	Name            string `json:"name"`
+	SubscriptionUrl string `json:"subscription_url"`
+}
+
 // general types
+type DBConfig struct {
+	LastGroupId int `json:"last_group_id"`
+}
+
 type Group struct {
 	Id              int    `json:"id"`
 	SubscriptionUrl string `json:"subscription_url"`

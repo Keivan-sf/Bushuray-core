@@ -109,20 +109,28 @@ func (db *DB) Initialize() {
 	if err != nil {
 		log.Fatal("cannot get user home directory")
 	}
-	var dbPath = filepath.Join(homeDir, ".config", "bushuray", "db")
-	db.Path = dbPath
-	var dirPath = filepath.Join(homeDir, ".config", "bushuray", "db", "groups", "0")
-	filePath := filepath.Join(dirPath, "group_config.json")
+	var db_path = filepath.Join(homeDir, ".config", "bushuray", "db")
+	db.Path = db_path
+	if err := os.MkdirAll(db_path, 0755); err != nil {
+		log.Fatal("failed to create database directory " + db_path + ": " + err.Error())
+	}
+	db.ensureDBConfigExistance()
+	db.ensureDefaultGroupExistance()
+}
 
-	if _, err := os.Stat(filePath); err == nil {
-		fmt.Println("using existing database")
-		return
-	} else if !os.IsNotExist(err) {
-		log.Fatal("error checking for database path " + filePath + ": " + err.Error())
+func (db *DB) ensureDefaultGroupExistance() {
+	var default_group_dir = filepath.Join(db.Path, "groups", "0")
+
+	if err := os.MkdirAll(default_group_dir, 0755); err != nil {
+		log.Fatal("failed to create default group directory " + default_group_dir + ": " + err.Error())
 	}
 
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		log.Fatal("failed to create database directory " + dirPath + ": " + err.Error())
+	default_group_path := db.GetGroupConfigFilePath(0)
+	if _, err := os.Stat(default_group_path); err == nil {
+		fmt.Println("using existing default group")
+		return
+	} else if !os.IsNotExist(err) {
+		log.Fatal("error checking for default groupo path " + default_group_path + ": " + err.Error())
 	}
 
 	group := structs.Group{
@@ -138,11 +146,37 @@ func (db *DB) Initialize() {
 		log.Fatal("failed to stringify default group config")
 	}
 
-	if err := os.WriteFile(filePath, json_data, 0644); err != nil {
-		log.Fatal("failed to write to default config " + filePath + ": " + err.Error())
+	if err := os.WriteFile(default_group_path, json_data, 0644); err != nil {
+		log.Fatal("failed to write to default config " + default_group_path + ": " + err.Error())
 	}
 
-	fmt.Println("default group config initialized:", filePath)
+	fmt.Println("default group config initialized:", default_group_path)
+}
+
+func (db *DB) ensureDBConfigExistance() {
+	main_db_config_path := db.GetMainConfigFile()
+
+	if _, err := os.Stat(main_db_config_path); err == nil {
+		fmt.Println("using existing config")
+	} else if !os.IsNotExist(err) {
+		log.Fatal("error checking for main database config " + main_db_config_path + ": " + err.Error())
+	} else {
+		db_config := structs.DBConfig{}
+		json_data, err := json.MarshalIndent(db_config, "", " ")
+
+		if err != nil {
+			log.Fatal("failed to stringify main db config config")
+		}
+
+		if err := os.WriteFile(main_db_config_path, json_data, 0644); err != nil {
+			log.Fatal("failed to write to main db config " + main_db_config_path + ": " + err.Error())
+		}
+	}
+
+}
+
+func (db *DB) GetMainConfigFile() string {
+	return filepath.Join(db.Path, "config.json")
 }
 
 func (db *DB) GetGroupConfigFilePath(group_id int) string {
