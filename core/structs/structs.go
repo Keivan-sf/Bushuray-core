@@ -2,6 +2,16 @@ package structs
 
 import "encoding/json"
 
+// database types
+type DBAddProfileData struct {
+	Uri        string          `json:"uri"`
+	GroupId    int             `json:"group_id"`
+	Name       string          `json:"name"`
+	Protocol   string          `json:"protocol"`
+	XrayConfig json.RawMessage `json:"xrayconfig"`
+}
+
+// commands and responses
 type AddProfileData struct {
 	Uri     string `json:"uri"`
 	GroupId int    `json:"group_id"`
@@ -15,6 +25,7 @@ type ProfileAdded struct {
 	Uri      string `json:"uri"`
 }
 
+// general types
 type Group struct {
 	Id              int    `json:"id"`
 	SubscriptionUrl string `json:"subscription_url"`

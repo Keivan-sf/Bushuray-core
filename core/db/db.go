@@ -4,6 +4,7 @@ import (
 	"bushuray-core/structs"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -15,7 +16,7 @@ type DB struct {
 	mu   sync.Mutex
 }
 
-func (db *DB) AddProfile(data structs.AddProfileData) (structs.ProfileAdded, error) {
+func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -32,14 +33,15 @@ func (db *DB) AddProfile(data structs.AddProfileData) (structs.ProfileAdded, err
 		return profile_added, err
 	}
 	profile := structs.Profile{
-		Id:       profile_id,
-		Name:     "randomname",
-		Protocol: "randomprotocol",
-		Uri:      data.Uri,
+		Id:         profile_id,
+		Name:       data.Name,
+		Protocol:   data.Protocol,
+		Uri:        data.Uri,
+		XrayConfig: data.XrayConfig,
 	}
 	profile_json, err := json.Marshal(profile)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	err = os.WriteFile(profile_path, profile_json, 0644)
@@ -76,7 +78,7 @@ func (db *DB) getGroupConfig(id int) (structs.Group, error) {
 func (db *DB) Initialize() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		panic("cannot get user home directory")
+		log.Fatal("cannot get user home directory")
 	}
 	var dbPath = filepath.Join(homeDir, ".config", "bushuray", "db")
 	db.Path = dbPath
@@ -87,11 +89,11 @@ func (db *DB) Initialize() {
 		fmt.Println("using existing database")
 		return
 	} else if !os.IsNotExist(err) {
-		panic("error checking for database path " + filePath + ": " + err.Error())
+		log.Fatal("error checking for database path " + filePath + ": " + err.Error())
 	}
 
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		panic("failed to create database directory " + dirPath + ": " + err.Error())
+		log.Fatal("failed to create database directory " + dirPath + ": " + err.Error())
 	}
 
 	group := structs.Group{
@@ -104,11 +106,11 @@ func (db *DB) Initialize() {
 	json_data, err := json.MarshalIndent(group, "", " ")
 
 	if err != nil {
-		panic("failed to stringify default group config")
+		log.Fatal("failed to stringify default group config")
 	}
 
 	if err := os.WriteFile(filePath, json_data, 0644); err != nil {
-		panic("failed to write to default config " + filePath + ": " + err.Error())
+		log.Fatal("failed to write to default config " + filePath + ": " + err.Error())
 	}
 
 	fmt.Println("default group config initialized:", filePath)

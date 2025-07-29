@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	cmd "bushuray-core/commands"
 	"bushuray-core/db"
 	"bushuray-core/structs"
 	"encoding/binary"
@@ -40,8 +41,9 @@ func main() {
 	}
 }
 
-func handleConnection(conn net.Conn, dataBase *db.DB) {
+func handleConnection(conn net.Conn, database *db.DB) {
 	defer conn.Close()
+	command_handler := cmd.Cmd{DB: database, Conn: conn}
 	reader := bufio.NewReader(conn)
 
 	for {
@@ -84,12 +86,7 @@ func handleConnection(conn net.Conn, dataBase *db.DB) {
 				log.Printf("Invalid body for add-profile %v", err)
 				return
 			}
-			profile_data, err := dataBase.AddProfile(data)
-			if err != nil {
-				log.Println("err adding profile:", err)
-			} else {
-				log.Println(profile_data)
-			}
+			command_handler.AddProfile(data)
 		default:
 			log.Println("Message not supported")
 		}

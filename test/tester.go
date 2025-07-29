@@ -20,7 +20,8 @@ func main() {
 	conn, _ := net.Dial("tcp", "127.0.0.1:4897")
 	defer conn.Close()
 
-	send(conn, Message[AddProfile]{Msg: "add-profile", Data: AddProfile{Uri: "vless://testuri", GroupId: 0}})
+	// send(conn, Message[AddProfile]{Msg: "add-profile", Data: AddProfile{Uri: "vless://testuri", GroupId: 0}})
+	send(conn, Message[AddProfile]{Msg: "add-profile", Data: AddProfile{Uri: "vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]t.me/ConfigsHub", GroupId: 0}})
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
 }
