@@ -2,16 +2,20 @@ package structs
 
 // database types
 type DBAddProfileData struct {
-	Uri        string          `json:"uri"`
-	GroupId    int             `json:"group_id"`
-	Name       string          `json:"name"`
-	Protocol   string          `json:"protocol"`
+	Uri      string `json:"uri"`
+	GroupId  int    `json:"group_id"`
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
 }
 
 // commands and responses
-type AddProfileData struct {
-	Uri     string `json:"uri"`
+type AddProfilesData struct {
+	Uris    string `json:"uris"`
 	GroupId int    `json:"group_id"`
+}
+
+type ProfilesAdded struct {
+	Profiles []ProfileAdded `json:"profiles"`
 }
 
 type ProfileAdded struct {
@@ -31,8 +35,8 @@ type Group struct {
 }
 
 type Profile struct {
-	Id         int             `json:"id"`
-	Name       string          `json:"name"`
-	Protocol   string          `json:"protocol"`
-	Uri        string          `json:"uri"`
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
+	Uri      string `json:"uri"`
 }

@@ -80,13 +80,13 @@ func handleConnection(conn net.Conn, database *db.DB) {
 		}
 
 		switch raw_tcp_message.Msg {
-		case "add-profile":
-			var data structs.AddProfileData
+		case "add-profiles":
+			var data structs.AddProfilesData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
-				log.Printf("Invalid body for add-profile %v", err)
+				log.Printf("Invalid body for add-profiles %v", err)
 				return
 			}
-			command_handler.AddProfile(data)
+			command_handler.AddProfiles(data)
 		default:
 			log.Println("Message not supported")
 		}
