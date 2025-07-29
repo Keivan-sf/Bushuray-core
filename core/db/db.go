@@ -37,7 +37,6 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		Name:       data.Name,
 		Protocol:   data.Protocol,
 		Uri:        data.Uri,
-		XrayConfig: data.XrayConfig,
 	}
 	profile_json, err := json.Marshal(profile)
 	if err != nil {

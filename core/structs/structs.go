@@ -1,14 +1,11 @@
 package structs
 
-import "encoding/json"
-
 // database types
 type DBAddProfileData struct {
 	Uri        string          `json:"uri"`
 	GroupId    int             `json:"group_id"`
 	Name       string          `json:"name"`
 	Protocol   string          `json:"protocol"`
-	XrayConfig json.RawMessage `json:"xrayconfig"`
 }
 
 // commands and responses
@@ -38,5 +35,4 @@ type Profile struct {
 	Name       string          `json:"name"`
 	Protocol   string          `json:"protocol"`
 	Uri        string          `json:"uri"`
-	XrayConfig json.RawMessage `json:"xrayconfig"`
 }

@@ -23,8 +23,8 @@ type Cmd struct {
 
 func (cmd *Cmd) AddProfile(data structs.AddProfileData) {
 	v2parserbin := path.Join(getWorkingDir(), "bin", "v2parser")
-	v2parser_cmd := exec.Command(v2parserbin, data.Uri, "--get-metadata")
-	metadata_output, err := v2parser_cmd.Output()
+	v2parser_metadata_cmd := exec.Command(v2parserbin, data.Uri, "--get-metadata")
+	metadata_output, err := v2parser_metadata_cmd.Output()
 	if err != nil {
 		log.Println("getting metadata failed:", err)
 		return
