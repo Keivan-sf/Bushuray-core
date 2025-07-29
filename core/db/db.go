@@ -26,6 +26,8 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		return profile_added, err
 	}
 	group_data.LastId++
+	db.saveGroupConfig(group_data)
+
 	profile_id := group_data.LastId
 	profile_path := db.GetProfileFilePath(group_data.Id, profile_id)
 	err = os.Remove(db.GetProfileFilePath(group_data.Id, profile_id))
@@ -55,8 +57,6 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		Protocol: profile.Protocol,
 		Name:     profile.Name,
 	}
-
-	db.saveGroupConfig(group_data)
 
 	return profile_added, nil
 }
