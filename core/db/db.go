@@ -16,6 +16,20 @@ type DB struct {
 	mu   sync.Mutex
 }
 
+func (db *DB) DeleteProfile(group_id int, id int) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	profile_config_path := db.GetProfileFilePath(group_id, id)
+	err := os.Remove(profile_config_path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("Profile removal error: %s did not exist in the first place", profile_config_path)
+		}
+		return fmt.Errorf("Failed to delete config file %w", err)
+	}
+	return nil
+}
+
 func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()

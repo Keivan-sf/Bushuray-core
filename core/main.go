@@ -87,6 +87,14 @@ func handleConnection(conn net.Conn, database *db.DB) {
 				return
 			}
 			command_handler.AddProfiles(data)
+		case "delete-profiles":
+			var data structs.DeleteProfilesData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for delete-profiles %v", err)
+				return
+			}
+			log.Println(data)
+			command_handler.DeleteProfiles(data)
 		default:
 			log.Println("Message not supported")
 		}

@@ -9,6 +9,15 @@ type DBAddProfileData struct {
 }
 
 // commands and responses
+type DeleteProfilesData struct {
+	Profiles []ProfileID `json:"profiles"`
+}
+
+type ProfileID struct {
+	Id      int `json:"id"`
+	GroupId int `json:"group_id"`
+}
+
 type AddProfilesData struct {
 	Uris    string `json:"uris"`
 	GroupId int    `json:"group_id"`
