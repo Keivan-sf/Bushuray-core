@@ -23,7 +23,7 @@ type AddConfigData struct {
 }
 
 func main() {
-	database := db.JSONDB{}
+	database := db.DB{}
 	database.Initialize()
 	listen, err := net.Listen("tcp", "127.0.0.1:4897")
 	if err != nil {
@@ -40,11 +40,11 @@ func main() {
 			log.Printf("failed to accept connection: %v", err)
 		}
 
-		go handleConnection(conn)
+		go handleConnection(conn, database)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, dataBase db.DB) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
@@ -88,6 +88,7 @@ func handleConnection(conn net.Conn) {
 				log.Printf("Invalid body for add-config %v", err)
 				return
 			}
+			dataBase.AddConfig()	
 			log.Println(data)
 		default:
 			log.Println("Message not supported")

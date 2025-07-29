@@ -5,26 +5,53 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 )
 
 type Group struct {
-	Id              uint   `json:"id"`
+	Id              int    `json:"id"`
 	SubscriptionUrl string `json:"subscription_url"`
 	Name            string `json:"name"`
+	LastId          int    `json:"last_id"`
 }
 
-type JSONDB struct {
-	DirPath string
-	mu      sync.Mutex
+type DB struct {
+	Path string
+	mu   sync.Mutex
 }
 
-func (db *JSONDB) Initialize() {
+func (db *DB) AddConfig() {
+	groupData, err := db.getGroupConfig(0)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(groupData)
+}
+
+func (db *DB) getGroupConfig(id int) (Group, error) {
+	fmt.Println("db path is in get group config is:", db.Path)
+	var groupData Group
+	groupConfDir := filepath.Join(db.Path, "groups", strconv.Itoa(id), "group_config.json")
+	data, err := os.ReadFile(groupConfDir)
+	if err != nil {
+		return groupData, err
+	}
+	err = json.Unmarshal(data, &groupData)
+	if err != nil {
+		err = fmt.Errorf("Failed to parse json group data for %d: %w", id, err)
+		return groupData, err
+	}
+	return groupData, nil
+}
+
+func (db *DB) Initialize() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic("cannot get user home directory")
 	}
-
+	var dbPath = filepath.Join(homeDir, ".config", "bushuray", "db")
+	db.Path = dbPath
 	var dirPath = filepath.Join(homeDir, ".config", "bushuray", "db", "groups", "0")
 	filePath := filepath.Join(dirPath, "group_config.json")
 
@@ -40,8 +67,10 @@ func (db *JSONDB) Initialize() {
 	}
 
 	group := Group{
-		Id:   0,
-		Name: "Default",
+		Id:              0,
+		Name:            "Default",
+		SubscriptionUrl: "",
+		LastId:          0,
 	}
 
 	json_data, err := json.MarshalIndent(group, "", " ")
@@ -54,6 +83,5 @@ func (db *JSONDB) Initialize() {
 		panic("failed to write to default config " + filePath + ": " + err.Error())
 	}
 
-	db.DirPath = dirPath
 	fmt.Println("default group config initialized:", filePath)
 }
