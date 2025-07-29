@@ -40,7 +40,7 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		Protocol: data.Protocol,
 		Uri:      data.Uri,
 	}
-	profile_json, err := json.Marshal(profile)
+	profile_json, err := json.MarshalIndent(profile, "", " ")
 	if err != nil {
 		log.Fatal(err)
 	}
