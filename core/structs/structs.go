@@ -45,10 +45,11 @@ type Group struct {
 }
 
 type Profile struct {
-	Id       int    `json:"id"`
-	Name     string `json:"name"`
-	Protocol string `json:"protocol"`
-	Uri      string `json:"uri"`
+	Id         int    `json:"id"`
+	Name       string `json:"name"`
+	Protocol   string `json:"protocol"`
+	Uri        string `json:"uri"`
+	TestResult int    `json:"test-result"`
 }
 
 type ProfileID struct {
@@ -56,12 +57,10 @@ type ProfileID struct {
 	GroupId int `json:"group_id"`
 }
 
-
 type TCPMessage struct {
 	Msg  string          `json:"msg"`
 	Data json.RawMessage `json:"data"`
 }
-
 
 type Message[T any] struct {
 	Msg  string `json:"msg"`
