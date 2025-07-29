@@ -15,26 +15,47 @@ type DB struct {
 	mu   sync.Mutex
 }
 
-func (db *DB) AddProfile(data structs.AddProfileData) error {
+func (db *DB) AddProfile(data structs.AddProfileData) (structs.ProfileAdded, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
+
+	var profile_added structs.ProfileAdded
 	group_data, err := db.getGroupConfig(data.GroupId)
 	if err != nil {
-		return err
+		return profile_added, err
 	}
 	group_data.LastId++
 	profile_id := group_data.LastId
-	err = os.Remove(db.GetConfigFilePath(group_data.Id, profile_id))
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("error is ok: not found")
-		}
-		return err
+	profile_path := db.GetProfileFilePath(group_data.Id, profile_id)
+	err = os.Remove(db.GetProfileFilePath(group_data.Id, profile_id))
+	if err != nil && !os.IsNotExist(err) {
+		return profile_added, err
 	}
-	fmt.Println("removed the file")
+	profile := structs.Profile{
+		Id:       profile_id,
+		Name:     "randomname",
+		Protocol: "randomprotocol",
+		Uri:      data.Uri,
+	}
+	profile_json, err := json.Marshal(profile)
+	if err != nil {
+		panic(err)
+	}
 
+	err = os.WriteFile(profile_path, profile_json, 0644)
+	if err != nil {
+		return profile_added, fmt.Errorf("failed to write %s: %w", profile_path, err)
+	}
 
-	return nil
+	profile_added = structs.ProfileAdded{
+		Uri:      data.Uri,
+		GroupId:  data.GroupId,
+		Id:       profile_id,
+		Protocol: profile.Protocol,
+		Name:     profile.Name,
+	}
+
+	return profile_added, nil
 }
 
 func (db *DB) getGroupConfig(id int) (structs.Group, error) {
@@ -97,6 +118,6 @@ func (db *DB) GetGroupConfigFilePath(group_id int) string {
 	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), "group_config.json")
 }
 
-func (db *DB) GetConfigFilePath(group_id int, profile_id int) string {
+func (db *DB) GetProfileFilePath(group_id int, profile_id int) string {
 	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), fmt.Sprintf("%d.json", profile_id))
 }

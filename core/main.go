@@ -84,8 +84,12 @@ func handleConnection(conn net.Conn, dataBase *db.DB) {
 				log.Printf("Invalid body for add-profile %v", err)
 				return
 			}
-			dataBase.AddProfile(data)
-			log.Println(data)
+			profile_data, err := dataBase.AddProfile(data)
+			if err != nil {
+				log.Println("err adding profile:", err)
+			} else {
+				log.Println(profile_data)
+			}
 		default:
 			log.Println("Message not supported")
 		}
