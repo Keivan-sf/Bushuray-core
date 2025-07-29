@@ -13,9 +13,8 @@ type DeleteProfilesData struct {
 	Profiles []ProfileID `json:"profiles"`
 }
 
-type ProfileID struct {
-	Id      int `json:"id"`
-	GroupId int `json:"group_id"`
+type ProfilesDeleted struct {
+	DeletedProfiles []ProfileID `json:"deleted-profiles"`
 }
 
 type AddProfilesData struct {
@@ -48,4 +47,9 @@ type Profile struct {
 	Name     string `json:"name"`
 	Protocol string `json:"protocol"`
 	Uri      string `json:"uri"`
+}
+
+type ProfileID struct {
+	Id      int `json:"id"`
+	GroupId int `json:"group_id"`
 }

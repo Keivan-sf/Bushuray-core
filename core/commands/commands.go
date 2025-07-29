@@ -17,16 +17,15 @@ func (cmd *Cmd) AddProfiles(data structs.AddProfilesData) structs.ProfilesAdded 
 	return lib.AddProfiles(cmd.DB, data)
 }
 
-func (cmd *Cmd) DeleteProfiles(data structs.DeleteProfilesData) {
-	var deleted int
+func (cmd *Cmd) DeleteProfiles(data structs.DeleteProfilesData) structs.ProfilesDeleted {
+	var deleted structs.ProfilesDeleted
 	for _, profile := range data.Profiles {
 		err := cmd.DB.DeleteProfile(profile.GroupId, profile.Id)
 		if err == nil {
-			deleted++
+			deleted.DeletedProfiles = append(deleted.DeletedProfiles, profile)
 		} else {
 			log.Println(err)
 		}
 	}
-
-	log.Println("delted", deleted, "profiles")
+	return deleted
 }

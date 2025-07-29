@@ -18,7 +18,6 @@ type profileMetaData struct {
 }
 
 func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded {
-	log.Println("uris are:", data.Uris)
 	uris := strings.FieldsSeq(data.Uris)
 	var profiles []structs.ProfileAdded
 	for uri := range uris {
@@ -28,7 +27,6 @@ func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded 
 			profiles = append(profiles, profile_data)
 		}
 	}
-	fmt.Println(profiles)
 	return structs.ProfilesAdded{
 		Profiles: profiles,
 	}

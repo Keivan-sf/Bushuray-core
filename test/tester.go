@@ -34,7 +34,7 @@ func main() {
 		GroupId: 0}})
 
 	send(conn, Message[DeleteProfiles]{Msg: "delete-profiles", Data: DeleteProfiles{
-		Profiles: []ProfileID{{Id: 1, GroupId: 0}, {Id: 2, GroupId: 0}},
+		Profiles: []ProfileID{{Id: 2, GroupId: 0}, {Id: 3, GroupId: 0}},
 	}})
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
