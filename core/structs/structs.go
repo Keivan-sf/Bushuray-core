@@ -1,6 +1,6 @@
 package structs
 
-type AddConfigData struct {
+type AddProfileData struct {
 	Uri     string `json:"uri"`
 	GroupId int    `json:"group_id"`
 }
@@ -12,3 +12,4 @@ type Group struct {
 	Name            string `json:"name"`
 	LastId          int    `json:"last_id"`
 }
+

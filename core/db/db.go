@@ -15,7 +15,7 @@ type DB struct {
 	mu   sync.Mutex
 }
 
-func (db *DB) AddConfig(data structs.AddConfigData) error {
+func (db *DB) AddProfile(data structs.AddProfileData) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	group_data, err := db.getGroupConfig(data.GroupId)
@@ -23,8 +23,8 @@ func (db *DB) AddConfig(data structs.AddConfigData) error {
 		return err
 	}
 	group_data.LastId++
-	config_id := group_data.LastId
-	err = os.Remove(db.GetConfigFilePath(group_data.Id, config_id))
+	profile_id := group_data.LastId
+	err = os.Remove(db.GetConfigFilePath(group_data.Id, profile_id))
 	if err != nil {
 		if os.IsNotExist(err) {
 			fmt.Println("error is ok: not found")
@@ -32,6 +32,8 @@ func (db *DB) AddConfig(data structs.AddConfigData) error {
 		return err
 	}
 	fmt.Println("removed the file")
+
+
 	return nil
 }
 
@@ -95,6 +97,6 @@ func (db *DB) GetGroupConfigFilePath(group_id int) string {
 	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), "group_config.json")
 }
 
-func (db *DB) GetConfigFilePath(group_id int, config_id int) string {
-	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), fmt.Sprintf("%d.json", config_id))
+func (db *DB) GetConfigFilePath(group_id int, profile_id int) string {
+	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id), fmt.Sprintf("%d.json", profile_id))
 }
