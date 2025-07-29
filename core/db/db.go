@@ -16,6 +16,10 @@ type DB struct {
 	mu   sync.Mutex
 }
 
+func (db *DB) AddGroup(name string, subscription_url string) {
+
+}
+
 func (db *DB) DeleteProfile(group_id int, id int) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -99,9 +103,41 @@ func (db *DB) saveGroupConfig(group structs.Group) error {
 	}
 
 	if err := os.WriteFile(group_conf_file, json_data, 0644); err != nil {
-		log.Fatal("failed to write to default config " + group_conf_file + ": " + err.Error())
+		log.Fatal("failed to write to group config " + group_conf_file + ": " + err.Error())
 	}
 	return nil
+}
+
+func (db *DB) saveDBConfig(db_config structs.DBConfig) error {
+	db_config_file := db.GetDBConfigFile()
+	json_data, err := json.MarshalIndent(db_config, "", " ")
+
+	if err != nil {
+		log.Fatal("failed to stringify db config")
+	}
+
+	if err := os.WriteFile(db_config_file, json_data, 0644); err != nil {
+		log.Fatal("failed to write to db config " + db_config_file + ": " + err.Error())
+	}
+	return nil
+}
+
+func (db *DB) loadDBConfig() (structs.DBConfig, error) {
+	var db_config_data structs.DBConfig
+	db_config_file := db.GetDBConfigFile()
+	data, err := os.ReadFile(db_config_file)
+	if err != nil {
+		return db_config_data, err
+	}
+
+	err = json.Unmarshal(data, &db_config_data)
+
+	if err != nil {
+		err = fmt.Errorf("Failed to parse json db config: %w", err)
+		return db_config_data, err
+	}
+
+	return db_config_data, nil
 }
 
 func (db *DB) Initialize() {
@@ -154,28 +190,28 @@ func (db *DB) ensureDefaultGroupExistance() {
 }
 
 func (db *DB) ensureDBConfigExistance() {
-	main_db_config_path := db.GetMainConfigFile()
+	db_config_path := db.GetDBConfigFile()
 
-	if _, err := os.Stat(main_db_config_path); err == nil {
+	if _, err := os.Stat(db_config_path); err == nil {
 		fmt.Println("using existing config")
 	} else if !os.IsNotExist(err) {
-		log.Fatal("error checking for main database config " + main_db_config_path + ": " + err.Error())
+		log.Fatal("error checking for database config " + db_config_path + ": " + err.Error())
 	} else {
 		db_config := structs.DBConfig{}
 		json_data, err := json.MarshalIndent(db_config, "", " ")
 
 		if err != nil {
-			log.Fatal("failed to stringify main db config config")
+			log.Fatal("failed to stringify db config config")
 		}
 
-		if err := os.WriteFile(main_db_config_path, json_data, 0644); err != nil {
-			log.Fatal("failed to write to main db config " + main_db_config_path + ": " + err.Error())
+		if err := os.WriteFile(db_config_path, json_data, 0644); err != nil {
+			log.Fatal("failed to write to db config " + db_config_path + ": " + err.Error())
 		}
 	}
 
 }
 
-func (db *DB) GetMainConfigFile() string {
+func (db *DB) GetDBConfigFile() string {
 	return filepath.Join(db.Path, "config.json")
 }
 
