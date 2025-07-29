@@ -17,13 +17,14 @@ type TcpMessage struct {
 	Data json.RawMessage `json:"data"`
 }
 
-type AddConfig struct {
+type AddConfigData struct {
 	Uri     string `json:"uri"`
 	GroupId uint   `json:"group_id"`
 }
 
 func main() {
-	db.Initialize()
+	database := db.JSONDB{}
+	database.Initialize()
 	listen, err := net.Listen("tcp", "127.0.0.1:4897")
 	if err != nil {
 		log.Fatal(err)
@@ -82,7 +83,7 @@ func handleConnection(conn net.Conn) {
 
 		switch raw_tcp_message.Msg {
 		case "add-config":
-			var data AddConfig
+			var data AddConfigData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
 				log.Printf("Invalid body for add-config %v", err)
 				return

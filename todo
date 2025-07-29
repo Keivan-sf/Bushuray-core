@@ -6,11 +6,11 @@
 
 test_result -> 0: not tested, -1: test failed , 0<: successful ping
 
-Config: {uri: stirng, id: num, group_id: num, test_result: num, name: string }
+Config: {uri: stirng, id: num, group_id: num, test_result: num, name: string , protocol: string }
 Group: {id: num , name: string, sub_link:}
 
 -> { msg: "add-config" , data: {uri: "vless://uri", group_id: 0}}
-<- { msg: "new-config",  data: {group_id: 0, id: 0, uri: "vless://uri", name: "config-name", test_result: num}} <- {msg: "warn" , data: "failed to add config"}
+<- { msg: "new-config",  data: {group_id: 0, id: 0, protocol: "vless", uri: "vless://uri", name: "config-name", test_result: num}} <- {msg: "warn" , data: "failed to add config"}
 
 -> { msg: "add-group", data: {name: "gourp-name", sub_link: "https://link"}}
 <- { msg: "new-group", data: {id: 1, sub_link: "https://link", name: "group-name", configs: {id: 1, group_id: 1, uri: "" , name: ""}[] } }

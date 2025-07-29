@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Group struct {
@@ -13,16 +14,22 @@ type Group struct {
 	Name            string `json:"name"`
 }
 
-func Initialize() {
+type JSONDB struct {
+	DirPath string
+	mu      sync.Mutex
+}
+
+func (db *JSONDB) Initialize() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic("cannot get user home directory")
 	}
 
-	dirPath := filepath.Join(homeDir, ".config", "bushuray", "db", "groups", "0")
+	var dirPath = filepath.Join(homeDir, ".config", "bushuray", "db", "groups", "0")
 	filePath := filepath.Join(dirPath, "group_config.json")
 
 	if _, err := os.Stat(filePath); err == nil {
+		fmt.Println("using existing database")
 		return
 	} else if !os.IsNotExist(err) {
 		panic("error checking for database path " + filePath + ": " + err.Error())
@@ -47,5 +54,6 @@ func Initialize() {
 		panic("failed to write to default config " + filePath + ": " + err.Error())
 	}
 
+	db.DirPath = dirPath
 	fmt.Println("default group config initialized:", filePath)
 }
