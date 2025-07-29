@@ -36,11 +36,11 @@ func main() {
 			log.Printf("failed to accept connection: %v", err)
 		}
 
-		go handleConnection(conn, database)
+		go handleConnection(conn, &database)
 	}
 }
 
-func handleConnection(conn net.Conn, dataBase db.DB) {
+func handleConnection(conn net.Conn, dataBase *db.DB) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
