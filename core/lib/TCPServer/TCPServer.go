@@ -61,9 +61,21 @@ func (s *Server) BroadCast(msg []byte) {
 	defer s.mutex.RUnlock()
 
 	for clientID, conn := range s.clients {
-		_, err := conn.Write(msg)
+
+		length := make([]byte, 4)
+		binary.BigEndian.PutUint32(length, uint32(len(msg)))
+
+		log.Println(string(msg))
+
+		_, err := conn.Write(length)
 		if err != nil {
-			fmt.Printf("Error sending to %s: %v\n", clientID, err)
+			fmt.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
+			continue
+		}
+		_, err = conn.Write(msg)
+		if err != nil {
+			fmt.Printf("Error sending %s to $%s: %v\n", msg, clientID, err)
+			continue
 		}
 	}
 }
@@ -81,7 +93,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 		fmt.Println("actually disconnected")
 	}()
 
-	command_handler := cmd.Cmd{DB: s.DB, Conn: conn}
+	command_handler := cmd.Cmd{DB: s.DB, Conn: conn, BroadCast: s.BroadCast}
 	reader := bufio.NewReader(conn)
 
 	for {

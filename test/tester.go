@@ -104,8 +104,6 @@ func listen(conn net.Conn, listen_finished chan<- bool) {
 			log.Printf("Invalid JSON: %v", err)
 			return
 		}
-
-		log.Println("raw tcp messgeis: ", raw_tcp_message)
 	}
 
 	listen_finished <- true

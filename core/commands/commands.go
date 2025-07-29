@@ -4,15 +4,15 @@ import (
 	"bushuray-core/db"
 	"bushuray-core/lib"
 	"bushuray-core/structs"
-	"encoding/binary"
 	"encoding/json"
 	"log"
 	"net"
 )
 
 type Cmd struct {
-	Conn net.Conn
-	DB   *db.DB
+	Conn      net.Conn
+	BroadCast func([]byte)
+	DB        *db.DB
 }
 
 func (cmd *Cmd) AddProfiles(data structs.AddProfilesData) {
@@ -40,13 +40,7 @@ func (cmd *Cmd) send(msg string, obj any) {
 	}
 	json_data, err := json.Marshal(data)
 	if err != nil {
-		log.Fatalf("failed to parse send message %v %s", data, err)
+		log.Fatalf("failed to parse json trying to send a message %v %s", data, err)
 	}
-	length := make([]byte, 4)
-	binary.BigEndian.PutUint32(length, uint32(len(json_data)))
-
-	log.Println(string(json_data))
-
-	cmd.Conn.Write(length)
-	cmd.Conn.Write(json_data)
+	cmd.BroadCast(json_data)
 }
