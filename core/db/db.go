@@ -21,7 +21,7 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 	defer db.mu.Unlock()
 
 	var profile_added structs.ProfileAdded
-	group_data, err := db.getGroupConfig(data.GroupId)
+	group_data, err := db.loadGroupConfig(data.GroupId)
 	if err != nil {
 		return profile_added, err
 	}
@@ -33,10 +33,10 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		return profile_added, err
 	}
 	profile := structs.Profile{
-		Id:         profile_id,
-		Name:       data.Name,
-		Protocol:   data.Protocol,
-		Uri:        data.Uri,
+		Id:       profile_id,
+		Name:     data.Name,
+		Protocol: data.Protocol,
+		Uri:      data.Uri,
 	}
 	profile_json, err := json.Marshal(profile)
 	if err != nil {
@@ -56,13 +56,15 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		Name:     profile.Name,
 	}
 
+	db.saveGroupConfig(group_data)
+
 	return profile_added, nil
 }
 
-func (db *DB) getGroupConfig(id int) (structs.Group, error) {
+func (db *DB) loadGroupConfig(id int) (structs.Group, error) {
 	var group_data structs.Group
-	group_conf_dir := db.GetGroupConfigFilePath(id)
-	data, err := os.ReadFile(group_conf_dir)
+	group_conf_file := db.GetGroupConfigFilePath(id)
+	data, err := os.ReadFile(group_conf_file)
 	if err != nil {
 		return group_data, err
 	}
@@ -72,6 +74,20 @@ func (db *DB) getGroupConfig(id int) (structs.Group, error) {
 		return group_data, err
 	}
 	return group_data, nil
+}
+
+func (db *DB) saveGroupConfig(group structs.Group) error {
+	group_conf_file := db.GetGroupConfigFilePath(group.Id)
+	json_data, err := json.MarshalIndent(group, "", " ")
+
+	if err != nil {
+		log.Fatal("failed to stringify default group config")
+	}
+
+	if err := os.WriteFile(group_conf_file, json_data, 0644); err != nil {
+		log.Fatal("failed to write to default config " + group_conf_file + ": " + err.Error())
+	}
+	return nil
 }
 
 func (db *DB) Initialize() {
