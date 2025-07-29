@@ -16,6 +16,17 @@ type DB struct {
 	mu   sync.Mutex
 }
 
+func (db *DB) DeleteGroup(id int) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	group_config_dir := db.GetGroupDirPath(id)
+	err := os.RemoveAll(group_config_dir)
+	if err != nil {
+		return fmt.Errorf("Failed to delete group dir %w", err)
+	}
+	return nil
+}
+
 func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded, error) {
 	var group_added structs.GroupAdded
 	db.mu.Lock()

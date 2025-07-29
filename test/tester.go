@@ -19,6 +19,10 @@ type Message[T any] struct {
 	Data T      `json:"data"`
 }
 
+type DeleteGroupData struct {
+	Id int `json:"id"`
+}
+
 type AddGroupData struct {
 	Name            string `json:"name"`
 	SubscriptionUrl string `json:"subscription_url"`
@@ -59,9 +63,13 @@ func main() {
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
 
-	send(conn, Message[AddGroupData]{Msg: "add-group", Data: AddGroupData{
-		Name:            "new_group",
-		SubscriptionUrl: "https://none",
+	// send(conn, Message[AddGroupData]{Msg: "add-group", Data: AddGroupData{
+	// 	Name:            "new_group",
+	// 	SubscriptionUrl: "https://none",
+	// }})
+
+	send(conn, Message[DeleteGroupData]{Msg: "delete-group", Data: DeleteGroupData{
+		Id: 3,
 	}})
 
 	// <-listen_finished

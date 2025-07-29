@@ -47,6 +47,14 @@ type GroupAdded struct {
 	Name            string `json:"name"`
 }
 
+type DeleteGroupData struct {
+	Id int `json:"id"`
+}
+
+type GroupDeleted struct {
+	Id int `json:"id"`
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`
