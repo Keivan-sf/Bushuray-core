@@ -33,7 +33,7 @@ func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded 
 }
 
 func addProfile(DB *db.DB, uri string, group_id int) (structs.ProfileAdded, error) {
-	v2parserbin := path.Join(getWorkingDir(), "bin", "v2parser")
+	v2parserbin := path.Join(GetWorkingDir(), "bin", "v2parser")
 	v2parser_metadata_cmd := exec.Command(v2parserbin, uri, "--get-metadata")
 	var profile_data structs.ProfileAdded
 	metadata_output, err := v2parser_metadata_cmd.Output()
@@ -60,7 +60,7 @@ func addProfile(DB *db.DB, uri string, group_id int) (structs.ProfileAdded, erro
 
 }
 
-func getWorkingDir() string {
+func GetWorkingDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
