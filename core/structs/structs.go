@@ -59,6 +59,8 @@ type ConnectData struct {
 	Profile ProfileID `json:"profile"`
 }
 
+type DisconnectData struct{}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`

@@ -6,6 +6,10 @@ import (
 	"log"
 )
 
+func (cmd *Cmd) Disconnect(data structs.DisconnectData, proxy_manager *proxy.ProxyManager) {
+	proxy_manager.Stop()
+}
+
 func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyManager) {
 	profile, err := cmd.DB.GetProfile(data.Profile.GroupId, data.Profile.Id)
 	if err != nil {

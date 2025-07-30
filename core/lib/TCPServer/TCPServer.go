@@ -175,6 +175,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			command_handler.Connect(data, s.proxy_manager)
 
+		case "disconnect":
+			var data structs.DisconnectData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for disconnect %v", err)
+				return
+			}
+			command_handler.Disconnect(data, s.proxy_manager)
+
 		default:
 			log.Println("Message not supported")
 		}
