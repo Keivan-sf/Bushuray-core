@@ -16,8 +16,9 @@ func (db *DB) DeleteProfile(group_id int, id int) error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			fmt.Printf("Profile removal error: %s did not exist in the first place", profile_config_path)
+		} else {
+			return fmt.Errorf("Failed to delete config file %w", err)
 		}
-		return fmt.Errorf("Failed to delete config file %w", err)
 	}
 	return nil
 }
