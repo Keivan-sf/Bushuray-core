@@ -60,6 +60,16 @@ type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`
 }
 
+type ApplicationData struct {
+	Groups                    []GroupWithProfiles `json:"groups"`
+	CurrentlyConnectedProfile ProfileID
+}
+
+type GroupWithProfiles struct {
+	Group    Group     `json:"group"`
+	Profiles []Profile `json:"profiles"`
+}
+
 type Group struct {
 	Id              int    `json:"id"`
 	SubscriptionUrl string `json:"subscription_url"`
@@ -88,4 +98,9 @@ type TCPMessage struct {
 type Message[T any] struct {
 	Msg  string `json:"msg"`
 	Data T      `json:"data"`
+}
+
+type ProxyStatus struct {
+	Connection string  `json:"connection"`
+	Profile    Profile `json:"profile"`
 }
