@@ -8,6 +8,21 @@ import (
 	"os"
 )
 
+func (db *DB) GetProfile(group_id int, id int) (structs.Profile, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	var profile structs.Profile
+	profile_config_path := db.GetProfileFilePath(group_id, id)
+	data, err := os.ReadFile(profile_config_path)
+	if err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	if err := json.Unmarshal(data, &profile); err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	return profile, nil
+}
+
 func (db *DB) DeleteProfile(group_id int, id int) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -15,7 +30,7 @@ func (db *DB) DeleteProfile(group_id int, id int) error {
 	err := os.Remove(profile_config_path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("Profile removal error: %s did not exist in the first place", profile_config_path)
+			log.Printf("Profile removal warning: %s did not exist in the first place", profile_config_path)
 		} else {
 			return fmt.Errorf("Failed to delete config file %w", err)
 		}
