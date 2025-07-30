@@ -70,7 +70,7 @@ func (s *Server) BroadCast(msg []byte) {
 		length := make([]byte, 4)
 		binary.BigEndian.PutUint32(length, uint32(len(msg)))
 
-		log.Println(string(msg))
+		// log.Println(string(msg))
 
 		_, err := conn.Write(length)
 		if err != nil {

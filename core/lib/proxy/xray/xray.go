@@ -4,17 +4,19 @@ import (
 	"bushuray-core/lib"
 	"context"
 	"fmt"
+	"log"
 	"os/exec"
 	"path"
 	"sync"
 )
 
 type XrayCore struct {
-	mu      sync.Mutex
-	cmd     *exec.Cmd
-	cancel  context.CancelFunc
-	running bool
-	Exited  chan error
+	mu             sync.Mutex
+	cmd            *exec.Cmd
+	cancel         context.CancelFunc
+	running        bool
+	channel_closed bool
+	Exited         chan error
 }
 
 func (x *XrayCore) Start(stdinPipe []byte) error {
@@ -57,9 +59,19 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 	go func() {
 		err := cmd.Wait()
 		x.mu.Lock()
-		x.running = false
-		x.mu.Unlock()
-		x.Exited <- err
+		defer x.mu.Unlock()
+		if ctx.Err() == nil {
+			select {
+			case x.Exited <- err:
+				if x.running {
+					close(x.Exited)
+				}
+				x.running = false
+			default:
+				// Channel is full or no reader, don't block
+			}
+		}
+
 	}()
 
 	return nil
@@ -68,9 +80,13 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 func (x *XrayCore) Stop() {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-
-	if !x.running {
-		return
+	if !x.channel_closed {
+		close(x.Exited)
+		x.channel_closed = true
+	}
+	err := x.cmd.Process.Kill()
+	if err != nil {
+		log.Println("error killing proces", err)
 	}
 	x.cancel()
 	x.running = false

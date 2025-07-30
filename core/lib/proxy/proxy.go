@@ -40,6 +40,10 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 		p.xray_core.Stop()
 	}
 
+	p.xray_core = xray.XrayCore{
+		Exited: make(chan error),
+	}
+
 	if p.status.Connection == "connected" {
 		p.status = structs.ProxyStatus{
 			Connection: "disconnected",
@@ -59,13 +63,18 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 	log.Println("changing connection status to", p.status.Connection)
 
 	go func() {
-		<-p.xray_core.Exited
-		p.mu.Lock()
-		p.status = structs.ProxyStatus{
-			Connection: "disconnected",
+		for {
+			_, ok := <-p.xray_core.Exited
+			if !ok {
+				return
+			}
+			p.mu.Lock()
+			p.status = structs.ProxyStatus{
+				Connection: "disconnected",
+			}
+			p.mu.Unlock()
+			p.StatusChanged <- p.status
 		}
-		p.mu.Unlock()
-		p.StatusChanged <- p.status
 	}()
 
 	return nil
