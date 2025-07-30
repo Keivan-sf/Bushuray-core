@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"bushuray-core/lib/proxy"
+	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"log"
 )

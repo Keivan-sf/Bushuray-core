@@ -4,7 +4,7 @@ import (
 	"bufio"
 	cmd "bushuray-core/commands"
 	"bushuray-core/db"
-	"bushuray-core/lib/proxy"
+	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"encoding/binary"
 	"encoding/json"

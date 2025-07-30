@@ -1,4 +1,4 @@
-package proxy
+package mainproxy
 
 import (
 	"bushuray-core/lib"

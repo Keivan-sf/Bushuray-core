@@ -3,7 +3,7 @@ package main
 import (
 	"bushuray-core/db"
 	"bushuray-core/lib/TCPServer"
-	"bushuray-core/lib/proxy"
+	proxy "bushuray-core/lib/proxy/mainproxy"
 	"log"
 	"os"
 	"os/signal"
