@@ -4,7 +4,6 @@ import (
 	"bushuray-core/db"
 	"bushuray-core/lib"
 	"bushuray-core/structs"
-	"encoding/json"
 	"log"
 	"net"
 )
@@ -62,13 +61,5 @@ func (cmd *Cmd) DeleteProfiles(data structs.DeleteProfilesData) {
 }
 
 func (cmd *Cmd) send(msg string, obj any) {
-	data := structs.Message[any]{
-		Msg:  msg,
-		Data: obj,
-	}
-	json_data, err := json.Marshal(data)
-	if err != nil {
-		log.Fatalf("failed to parse json trying to send a message %v %s", data, err)
-	}
-	cmd.BroadCast(json_data)
+	cmd.BroadCast(lib.CreateJsonNotification(msg, obj))
 }

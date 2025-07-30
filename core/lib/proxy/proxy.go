@@ -4,6 +4,7 @@ import (
 	"bushuray-core/lib"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
+	"log"
 	"sync"
 )
 
@@ -19,9 +20,17 @@ type ProxyManager struct {
 	StatusChanged chan structs.ProxyStatus
 }
 
+func (p *ProxyManager) Init() {
+	p.StatusChanged = make(chan structs.ProxyStatus)
+	p.xray_core = xray.XrayCore{
+		Exited: make(chan error),
+	}
+}
+
 func (p *ProxyManager) Connect(profile structs.Profile) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
 	xray_config, err := lib.ParseUri(profile.Uri, 3090, 3091)
 	if err != nil {
 		return err
@@ -47,6 +56,7 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 		Profile:    profile,
 	}
 	p.StatusChanged <- p.status
+	log.Println("changing connection status to", p.status.Connection)
 
 	go func() {
 		<-p.xray_core.Exited

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	cmd "bushuray-core/commands"
 	"bushuray-core/db"
+	"bushuray-core/lib/proxy"
 	"bushuray-core/structs"
 	"encoding/binary"
 	"encoding/json"
@@ -16,15 +17,17 @@ import (
 )
 
 type Server struct {
-	clients map[string]net.Conn
-	DB      *db.DB
-	mutex   sync.RWMutex
+	clients       map[string]net.Conn
+	DB            *db.DB
+	mutex         sync.RWMutex
+	proxy_manager *proxy.ProxyManager
 }
 
-func NewServer(database *db.DB) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager) *Server {
 	return &Server{
-		DB:      database,
-		clients: make(map[string]net.Conn),
+		DB:            database,
+		clients:       make(map[string]net.Conn),
+		proxy_manager: proxy_manager,
 	}
 }
 
@@ -37,6 +40,8 @@ func (s *Server) Start() {
 	}
 
 	fmt.Println("server is listening on port 4897")
+
+	go s.handleStatusChange()
 
 	go func() {
 		for {
@@ -161,6 +166,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				return
 			}
 			command_handler.DeleteGroup(data)
+
+		case "connect":
+			var data structs.ConnectData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for connect %v", err)
+				return
+			}
+			command_handler.Connect(data, s.proxy_manager)
 
 		default:
 			log.Println("Message not supported")

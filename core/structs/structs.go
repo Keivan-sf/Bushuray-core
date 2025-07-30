@@ -55,6 +55,10 @@ type GroupDeleted struct {
 	Id int `json:"id"`
 }
 
+type ConnectData struct {
+	Profile ProfileID `json:"profile"`
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`

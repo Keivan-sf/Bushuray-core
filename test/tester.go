@@ -19,6 +19,10 @@ type Message[T any] struct {
 	Data T      `json:"data"`
 }
 
+type ConnectData struct {
+	Profile ProfileID `json:"profile"`
+}
+
 type DeleteGroupData struct {
 	Id int `json:"id"`
 }
@@ -68,8 +72,16 @@ func main() {
 	// 	SubscriptionUrl: "https://none",
 	// }})
 
-	send(conn, Message[DeleteGroupData]{Msg: "delete-group", Data: DeleteGroupData{
-		Id: 3,
+	// send(conn, Message[DeleteGroupData]{Msg: "delete-group", Data: DeleteGroupData{
+	// 	Id: 3,
+	// }})
+
+
+	send(conn, Message[ConnectData]{Msg: "connect", Data: ConnectData{
+		Profile: ProfileID{
+			Id:      1,
+			GroupId: 0,
+		},
 	}})
 
 	// <-listen_finished
