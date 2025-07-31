@@ -75,13 +75,12 @@ func (s *Server) BroadCast(msg []byte) {
 
 		_, err := conn.Write(length)
 		if err != nil {
-			fmt.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
+			log.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
 			continue
 		}
 		_, err = conn.Write(msg)
 		if err != nil {
-			fmt.Printf("Error sending %s to $%s: %v\n", msg, clientID, err)
-			continue
+			log.Fatalf("Error sending %s to $%s: %v\n", msg, clientID, err)
 		}
 	}
 }
