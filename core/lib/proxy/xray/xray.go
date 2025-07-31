@@ -84,9 +84,11 @@ func (x *XrayCore) Stop() {
 		close(x.Exited)
 		x.channel_closed = true
 	}
-	err := x.cmd.Process.Kill()
-	if err != nil {
-		log.Println("error killing proces", err)
+	if x.cmd != nil && x.cmd.Process != nil {
+		err := x.cmd.Process.Kill()
+		if err != nil {
+			log.Println("error killing proces", err)
+		}
 	}
 	x.cancel()
 	x.running = false
