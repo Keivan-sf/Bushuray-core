@@ -90,7 +90,9 @@ func (x *XrayCore) Stop() {
 			log.Println("error killing proces", err)
 		}
 	}
-	x.cancel()
+	if x.cancel != nil {
+		x.cancel()
+	}
 	x.running = false
 }
 
