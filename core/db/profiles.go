@@ -8,6 +8,27 @@ import (
 	"os"
 )
 
+func (db *DB) UpdateProfile(profile structs.Profile) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	profile_config_path := db.GetProfileFilePath(profile.GroupId, profile.Id)
+	_, err := os.ReadFile(profile_config_path)
+	if err != nil {
+		return fmt.Errorf("update error: Profile does not exist gid: %d, id: %d: %w", profile.GroupId, profile.Id, err)
+	}
+
+	profile_json, err := json.MarshalIndent(profile, "", " ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(profile_config_path, profile_json, 0644)
+	if err != nil {
+		return fmt.Errorf("update error: failed to write %s: %w", profile_config_path, err)
+	}
+	return nil
+}
+
 func (db *DB) GetProfile(group_id int, id int) (structs.Profile, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
