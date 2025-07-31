@@ -2,6 +2,7 @@ package mainproxy
 
 import (
 	"bushuray-core/lib"
+	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"log"
@@ -14,17 +15,25 @@ import (
 // test -> limit to 5 concurrent tests, but simple return interface
 
 type ProxyManager struct {
-	status        structs.ProxyStatus
-	mu            sync.Mutex
-	xray_core     xray.XrayCore
-	StatusChanged chan structs.ProxyStatus
+	status            structs.ProxyStatus
+	mu                sync.Mutex
+	xray_core         xray.XrayCore
+	StatusChanged     chan structs.ProxyStatus
+	testChannel       chan structs.Profile
+	TestResultChannel chan TestResult
+	portPool          *portpool.PortPool
 }
 
 func (p *ProxyManager) Init() {
 	p.StatusChanged = make(chan structs.ProxyStatus)
+	test_channel := make(chan structs.Profile, 5)
+	go p.listenForTests(test_channel)
+	p.testChannel = test_channel
+	p.TestResultChannel = make(chan TestResult)
 	p.xray_core = xray.XrayCore{
 		Exited: make(chan error),
 	}
+	p.portPool = portpool.CreatePortPool(3095, 3120)
 }
 
 func (p *ProxyManager) Connect(profile structs.Profile) error {

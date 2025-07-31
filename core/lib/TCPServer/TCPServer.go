@@ -42,6 +42,7 @@ func (s *Server) Start() {
 	fmt.Println("server is listening on port 4897")
 
 	go s.handleStatusChange()
+	go s.handleTestResults()
 
 	go func() {
 		for {
@@ -182,6 +183,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				return
 			}
 			command_handler.Disconnect(data, s.proxy_manager)
+
+		case "test-profile":
+			var data structs.TestProfileData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for test-profile%v", err)
+				return
+			}
+			command_handler.TestProfile(data, s.proxy_manager)
 
 		default:
 			log.Println("Message not supported")

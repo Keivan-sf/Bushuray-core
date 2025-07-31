@@ -61,6 +61,14 @@ type ConnectData struct {
 
 type DisconnectData struct{}
 
+type TestProfileData struct {
+	Profile ProfileID `json:"profile"`
+}
+
+type ProfileUpdated struct {
+	Profile Profile `json:"profile"`
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`
@@ -85,7 +93,7 @@ type Group struct {
 
 type Profile struct {
 	Id         int    `json:"id"`
-	GroupId  int    `json:"group_id"`
+	GroupId    int    `json:"group_id"`
 	Name       string `json:"name"`
 	Protocol   string `json:"protocol"`
 	Uri        string `json:"uri"`
