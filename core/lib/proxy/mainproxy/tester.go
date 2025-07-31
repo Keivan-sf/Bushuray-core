@@ -23,35 +23,32 @@ func (p *ProxyManager) TestProfile(profile structs.Profile) {
 }
 
 func (p *ProxyManager) listenForTests(tests_chan chan structs.Profile) {
+	sem := make(chan struct{}, 5)
+
 	for profile := range tests_chan {
-		go p.test(profile)
+		sem <- struct{}{}
+		go func(profile structs.Profile) {
+			ping := p.test(profile)
+			p.sendTestResult(profile, ping)
+			<-sem
+		}(profile)
 	}
 }
 
-func (p *ProxyManager) test(profile structs.Profile) {
+func (p *ProxyManager) test(profile structs.Profile) int {
 	port, err := p.portPool.GetPort()
 	if err != nil {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
 	parsed, err := lib.ParseUri(profile.Uri, port, -1)
 	if err != nil {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
 
 	xray_core := xray.XrayCore{
 		Exited: make(chan error),
 	}
-	go func() {
-		for {
-			_, ok := <-xray_core.Exited
-			if !ok {
-				return
-			}
-			p.sendTestResult(profile, -1)
-		}
-	}()
+
 	xray_core.Start(parsed)
 	defer xray_core.Stop()
 	time.Sleep(1 * time.Second)
@@ -59,8 +56,7 @@ func (p *ProxyManager) test(profile structs.Profile) {
 	// test a request with socks5
 	dialer, err := goproxy.SOCKS5("tcp", fmt.Sprintf("127.0.0.1:%d", port), nil, goproxy.Direct)
 	if err != nil {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
 
 	transport := &http.Transport{
@@ -74,25 +70,22 @@ func (p *ProxyManager) test(profile structs.Profile) {
 	start_time := time.Now()
 	resp, err := client.Get("https://dns.google.com/resolve?name=google.com")
 	if err != nil {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
 	ping := time.Since(start_time)
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
 
 	bodyStr := strings.TrimSpace(string(body))
 
 	if bodyStr == "" {
-		p.sendTestResult(profile, -1)
-		return
+		return -1
 	}
-	p.sendTestResult(profile, int(ping.Milliseconds()))
+	return int(ping.Milliseconds())
 }
 
 func (p *ProxyManager) sendTestResult(profile structs.Profile, ping int) {

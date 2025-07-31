@@ -26,7 +26,7 @@ type ProxyManager struct {
 
 func (p *ProxyManager) Init() {
 	p.StatusChanged = make(chan structs.ProxyStatus)
-	test_channel := make(chan structs.Profile, 5)
+	test_channel := make(chan structs.Profile)
 	go p.listenForTests(test_channel)
 	p.testChannel = test_channel
 	p.TestResultChannel = make(chan TestResult)
