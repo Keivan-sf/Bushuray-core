@@ -85,6 +85,7 @@ type Group struct {
 
 type Profile struct {
 	Id         int    `json:"id"`
+	GroupId  int    `json:"group_id"`
 	Name       string `json:"name"`
 	Protocol   string `json:"protocol"`
 	Uri        string `json:"uri"`
