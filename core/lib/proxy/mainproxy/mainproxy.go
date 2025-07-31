@@ -25,6 +25,9 @@ type ProxyManager struct {
 }
 
 func (p *ProxyManager) Init() {
+	p.status = structs.ProxyStatus{
+		Connection: "disconnected",
+	}
 	p.StatusChanged = make(chan structs.ProxyStatus)
 	test_channel := make(chan structs.Profile)
 	go p.listenForTests(test_channel)
