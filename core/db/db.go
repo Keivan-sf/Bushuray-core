@@ -52,6 +52,10 @@ func (db *DB) GetDBConfigFile() string {
 	return filepath.Join(db.Path, "config.json")
 }
 
+func (db *DB) GetGroupsDirPath() string {
+	return filepath.Join(db.Path, "groups")
+}
+
 func (db *DB) GetGroupDirPath(group_id int) string {
 	return filepath.Join(db.Path, "groups", strconv.Itoa(group_id))
 }

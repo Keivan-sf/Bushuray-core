@@ -6,7 +6,76 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
+
+func (db *DB) GetAllGroupsAndProfiles() ([]structs.GroupWithProfiles, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	var groups_with_profiles []structs.GroupWithProfiles = []structs.GroupWithProfiles{}
+
+	dir_path := db.GetGroupsDirPath()
+
+	entries, err := os.ReadDir(dir_path)
+	if err != nil {
+		return groups_with_profiles, fmt.Errorf("Error reading directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		group_id, err := strconv.Atoi(entry.Name())
+		if err != nil {
+			continue
+		}
+		group, err := db.getGroupDataAndProfiles(group_id)
+		if err != nil {
+			log.Println("warning while gathering all groups:", err)
+			continue
+		}
+		groups_with_profiles = append(groups_with_profiles, group)
+	}
+
+	return groups_with_profiles, nil
+}
+
+func (db *DB) getGroupDataAndProfiles(group_id int) (structs.GroupWithProfiles, error) {
+	var group_with_profiles structs.GroupWithProfiles = structs.GroupWithProfiles{
+		Profiles: []structs.Profile{},
+	}
+	dir_path := db.GetGroupDirPath(group_id)
+	group_config, err := db.loadGroupConfig(group_id)
+	if err != nil {
+		return group_with_profiles, err
+	}
+	group_with_profiles.Group = group_config
+
+	entries, err := os.ReadDir(dir_path)
+	if err != nil {
+		return group_with_profiles, fmt.Errorf("Error reading directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		profile_id_str, _ := strings.CutSuffix(entry.Name(), ".json")
+		profile_id, err := strconv.Atoi(profile_id_str)
+		if err != nil {
+			continue
+		}
+		profile, err := db.getProfile(group_id, profile_id)
+		if err != nil {
+			continue
+		}
+		group_with_profiles.Profiles = append(group_with_profiles.Profiles, profile)
+	}
+
+	return group_with_profiles, nil
+}
 
 func (db *DB) DeleteGroup(id int) error {
 	db.mu.Lock()
@@ -71,7 +140,6 @@ func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded
 
 	return group_added, nil
 }
-
 
 func (db *DB) loadGroupConfig(id int) (structs.Group, error) {
 	var group_data structs.Group

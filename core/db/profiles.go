@@ -32,16 +32,7 @@ func (db *DB) UpdateProfile(profile structs.Profile) error {
 func (db *DB) GetProfile(group_id int, id int) (structs.Profile, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
-	var profile structs.Profile
-	profile_config_path := db.GetProfileFilePath(group_id, id)
-	data, err := os.ReadFile(profile_config_path)
-	if err != nil {
-		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
-	}
-	if err := json.Unmarshal(data, &profile); err != nil {
-		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
-	}
-	return profile, nil
+	return db.getProfile(group_id, id)
 }
 
 func (db *DB) DeleteProfile(group_id int, id int) error {
@@ -106,4 +97,17 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 	}
 
 	return profile_added, nil
+}
+
+func (db *DB) getProfile(group_id int, id int) (structs.Profile, error) {
+	var profile structs.Profile
+	profile_config_path := db.GetProfileFilePath(group_id, id)
+	data, err := os.ReadFile(profile_config_path)
+	if err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	if err := json.Unmarshal(data, &profile); err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	return profile, nil
 }

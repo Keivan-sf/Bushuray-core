@@ -69,14 +69,16 @@ type ProfileUpdated struct {
 	Profile Profile `json:"profile"`
 }
 
+type GetApplicationStateData struct{}
+
+type ApplicationState struct {
+	Groups           []GroupWithProfiles `json:"groups"`
+	ConnectionStatus ProxyStatus         `json:"connection-status"`
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`
-}
-
-type ApplicationData struct {
-	Groups                    []GroupWithProfiles `json:"groups"`
-	CurrentlyConnectedProfile ProfileID
 }
 
 type GroupWithProfiles struct {
