@@ -72,15 +72,17 @@ func (s *Server) BroadCast(msg []byte) {
 		binary.BigEndian.PutUint32(length, uint32(len(msg)))
 
 		// log.Println(string(msg))
-
 		_, err := conn.Write(length)
 		if err != nil {
 			log.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
+			conn.Close()
 			continue
 		}
 		_, err = conn.Write(msg)
 		if err != nil {
-			log.Fatalf("Error sending %s to $%s: %v\n", msg, clientID, err)
+			log.Printf("Error sending %s to $%s: %v\n", msg, clientID, err)
+			conn.Close()
+			continue
 		}
 	}
 }
@@ -190,6 +192,13 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				return
 			}
 			command_handler.TestProfile(data, s.proxy_manager)
+		case "get-application-state":
+			var data structs.GetApplicationStateData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for get-application-state%v", err)
+				return
+			}
+			command_handler.GetApplicationState(data, s.proxy_manager)
 
 		default:
 			log.Println("Message not supported")
