@@ -19,7 +19,7 @@ import (
 type Server struct {
 	clients       map[string]net.Conn
 	DB            *db.DB
-	mutex         sync.RWMutex
+	mutex         sync.Mutex
 	proxy_manager *proxy.ProxyManager
 }
 
@@ -63,8 +63,8 @@ func (s *Server) Start() {
 }
 
 func (s *Server) BroadCast(msg []byte) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	for clientID, conn := range s.clients {
 
