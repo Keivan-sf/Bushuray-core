@@ -61,6 +61,7 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 	}
 	profile := structs.Profile{
 		Id:       profile_id,
+		GroupId:  data.GroupId,
 		Name:     data.Name,
 		Protocol: data.Protocol,
 		Uri:      data.Uri,
