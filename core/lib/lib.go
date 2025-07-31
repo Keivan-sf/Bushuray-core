@@ -18,13 +18,12 @@ type profileMetaData struct {
 }
 
 func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded {
-	uris := strings.FieldsSeq(data.Uris)
-	var profiles []structs.ProfileAdded
-	for uri := range uris {
-		log.Println("adding uri:", uri)
-		profile_data, err := addProfile(DB, uri, data.GroupId)
+	profiles_data := GetDBAddProfileDatasFromStr(data.Uris, data.GroupId)
+	var profiles []structs.Profile
+	for _, profile_data := range profiles_data {
+		profile_added, err := DB.AddProfile(profile_data)
 		if err == nil {
-			profiles = append(profiles, profile_data)
+			profiles = append(profiles, profile_added)
 		}
 	}
 	return structs.ProfilesAdded{
@@ -32,10 +31,23 @@ func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded 
 	}
 }
 
-func addProfile(DB *db.DB, uri string, group_id int) (structs.ProfileAdded, error) {
+func GetDBAddProfileDatasFromStr(str string, group_id int) []structs.DBAddProfileData {
+	uris := strings.FieldsSeq(str)
+	var profiles []structs.DBAddProfileData
+	for uri := range uris {
+		profile, err := getDBAddProfileDataFromURI(uri, group_id)
+		if err != nil {
+			continue
+		}
+		profiles = append(profiles, profile)
+	}
+	return profiles
+}
+
+func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileData, error) {
 	v2parserbin := path.Join(GetWorkingDir(), "bin", "v2parser")
 	v2parser_metadata_cmd := exec.Command(v2parserbin, uri, "--get-metadata")
-	var profile_data structs.ProfileAdded
+	var profile_data structs.DBAddProfileData
 	metadata_output, err := v2parser_metadata_cmd.Output()
 	if err != nil {
 		return profile_data, fmt.Errorf("getting metadata failed: %w", err)
@@ -46,18 +58,13 @@ func addProfile(DB *db.DB, uri string, group_id int) (structs.ProfileAdded, erro
 		return profile_data, fmt.Errorf("err unmarshaling metadata output: %w", err)
 	}
 
-	profile_data, err = DB.AddProfile(structs.DBAddProfileData{
+	profile_data = structs.DBAddProfileData{
 		Protocol: profile_metadata.Protocol,
 		Name:     profile_metadata.Name,
 		Uri:      uri,
 		GroupId:  group_id,
-	})
-
-	if err != nil {
-		return profile_data, fmt.Errorf("err adding profile: %w", err)
 	}
 	return profile_data, nil
-
 }
 
 func GetWorkingDir() string {

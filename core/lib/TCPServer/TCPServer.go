@@ -200,6 +200,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			command_handler.GetApplicationState(data, s.proxy_manager)
 
+		case "update-subscription":
+			var data structs.UpdateSubscriptionData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for update-subscription%v", err)
+				return
+			}
+			command_handler.UpdateSubscription(data)
+
 		default:
 			log.Println("Message not supported")
 		}

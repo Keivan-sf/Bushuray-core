@@ -25,15 +25,7 @@ type AddProfilesData struct {
 }
 
 type ProfilesAdded struct {
-	Profiles []ProfileAdded `json:"profiles"`
-}
-
-type ProfileAdded struct {
-	Id       int    `json:"id"`
-	GroupId  int    `json:"group_id"`
-	Name     string `json:"name"`
-	Protocol string `json:"protocol"`
-	Uri      string `json:"uri"`
+	Profiles []Profile `json:"profiles"`
 }
 
 type AddGroupData struct {
@@ -74,6 +66,15 @@ type GetApplicationStateData struct{}
 type ApplicationState struct {
 	Groups           []GroupWithProfiles `json:"groups"`
 	ConnectionStatus ProxyStatus         `json:"connection-status"`
+}
+
+type UpdateSubscriptionData struct {
+	GroupId int `json:"group_id"`
+}
+
+type SubscriptionUpdated struct {
+	GroupId  int       `json:"group_id"`
+	Profiles []Profile `json:"profiles"`
 }
 
 // general types

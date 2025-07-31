@@ -38,6 +38,10 @@ func (db *DB) GetProfile(group_id int, id int) (structs.Profile, error) {
 func (db *DB) DeleteProfile(group_id int, id int) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
+	return db.deleteProfile(group_id, id)
+}
+
+func (db *DB) deleteProfile(group_id int, id int) error {
 	profile_config_path := db.GetProfileFilePath(group_id, id)
 	err := os.Remove(profile_config_path)
 	if err != nil {
@@ -50,11 +54,27 @@ func (db *DB) DeleteProfile(group_id int, id int) error {
 	return nil
 }
 
-func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, error) {
+func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.Profile, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
+	return db.addProfile(data)
+}
 
-	var profile_added structs.ProfileAdded
+func (db *DB) getProfile(group_id int, id int) (structs.Profile, error) {
+	var profile structs.Profile
+	profile_config_path := db.GetProfileFilePath(group_id, id)
+	data, err := os.ReadFile(profile_config_path)
+	if err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	if err := json.Unmarshal(data, &profile); err != nil {
+		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
+	}
+	return profile, nil
+}
+
+func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error) {
+	var profile_added structs.Profile
 	group_data, err := db.loadGroupConfig(data.GroupId)
 	if err != nil {
 		return profile_added, err
@@ -88,26 +108,14 @@ func (db *DB) AddProfile(data structs.DBAddProfileData) (structs.ProfileAdded, e
 		return profile_added, fmt.Errorf("failed to write %s: %w", profile_path, err)
 	}
 
-	profile_added = structs.ProfileAdded{
-		Uri:      data.Uri,
-		GroupId:  data.GroupId,
-		Id:       profile_id,
-		Protocol: profile.Protocol,
-		Name:     profile.Name,
+	profile_added = structs.Profile{
+		Uri:        data.Uri,
+		GroupId:    data.GroupId,
+		Id:         profile_id,
+		Protocol:   profile.Protocol,
+		Name:       profile.Name,
+		TestResult: 0,
 	}
 
 	return profile_added, nil
-}
-
-func (db *DB) getProfile(group_id int, id int) (structs.Profile, error) {
-	var profile structs.Profile
-	profile_config_path := db.GetProfileFilePath(group_id, id)
-	data, err := os.ReadFile(profile_config_path)
-	if err != nil {
-		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
-	}
-	if err := json.Unmarshal(data, &profile); err != nil {
-		return profile, fmt.Errorf("Error reading profile config with gid: %d, id: %d: %w", group_id, id, err)
-	}
-	return profile, nil
 }
