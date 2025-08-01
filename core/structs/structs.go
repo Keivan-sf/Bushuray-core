@@ -77,6 +77,11 @@ type SubscriptionUpdated struct {
 	Profiles []Profile `json:"profiles"`
 }
 
+type Warning struct {
+	Key     string `json:"key"`
+	Content string `json:"content"`
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`

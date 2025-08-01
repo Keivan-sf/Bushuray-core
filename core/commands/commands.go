@@ -60,6 +60,14 @@ func (cmd *Cmd) DeleteProfiles(data structs.DeleteProfilesData) {
 	cmd.send("profiles-deleted", deleted)
 }
 
+func (cmd *Cmd) warn(key string, msg string) {
+	cmd.BroadCast(lib.CreateJsonNotification("warn", structs.Warning{Key: key, Content: msg}))
+}
+
+func (cmd *Cmd) fatal(msg string) {
+	cmd.BroadCast(lib.CreateJsonNotification("error", structs.Warning{Content: msg}))
+}
+
 func (cmd *Cmd) send(msg string, obj any) {
 	cmd.BroadCast(lib.CreateJsonNotification(msg, obj))
 }

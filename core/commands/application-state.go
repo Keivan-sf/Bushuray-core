@@ -10,6 +10,7 @@ func (cmd *Cmd) GetApplicationState(data structs.GetApplicationStateData, proxy_
 	groups, err := cmd.DB.GetAllGroupsAndProfiles()
 	if err != nil {
 		log.Println(err.Error())
+		cmd.warn("read-application-state-failed", "failed to read application state")
 		return
 	}
 

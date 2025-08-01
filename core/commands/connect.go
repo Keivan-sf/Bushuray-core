@@ -14,6 +14,7 @@ func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyMana
 	profile, err := cmd.DB.GetProfile(data.Profile.GroupId, data.Profile.Id)
 	if err != nil {
 		log.Println(err.Error())
+		cmd.warn("connect-failed", "Failed to connect")
 		return
 		// warn client
 	}
