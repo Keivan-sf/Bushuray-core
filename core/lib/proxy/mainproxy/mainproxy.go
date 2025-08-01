@@ -2,6 +2,7 @@ package mainproxy
 
 import (
 	"bushuray-core/lib"
+	appconfig "bushuray-core/lib/AppConfig"
 	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
@@ -36,14 +37,15 @@ func (p *ProxyManager) Init() {
 	p.xray_core = xray.XrayCore{
 		Exited: make(chan error),
 	}
-	p.portPool = portpool.CreatePortPool(3095, 3120)
+	test_port_range := appconfig.GetConfig().TestPortRange
+	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
 }
 
 func (p *ProxyManager) Connect(profile structs.Profile) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-
-	xray_config, err := lib.ParseUri(profile.Uri, 3090, 3091)
+	app_config := appconfig.GetConfig()
+	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort)
 	if err != nil {
 		return err
 	}

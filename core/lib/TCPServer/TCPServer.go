@@ -4,6 +4,7 @@ import (
 	"bufio"
 	cmd "bushuray-core/commands"
 	"bushuray-core/db"
+	appconfig "bushuray-core/lib/AppConfig"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"encoding/binary"
@@ -32,14 +33,16 @@ func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager) *Server {
 }
 
 func (s *Server) Start() {
-	listen, err := net.Listen("tcp", "127.0.0.1:4897")
+	app_config := appconfig.GetConfig()
+	listen, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", app_config.CoreTCPPort))
 
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(0)
 	}
 
-	fmt.Println("server is listening on port 4897")
+
+	fmt.Println("server is listening on port", app_config.CoreTCPPort)
 
 	go s.handleStatusChange()
 	go s.handleTestResults()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bushuray-core/db"
+	"bushuray-core/lib/AppConfig"
 	"bushuray-core/lib/TCPServer"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"log"
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	appconfig.LoadConfig()
 	database := db.DB{}
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
