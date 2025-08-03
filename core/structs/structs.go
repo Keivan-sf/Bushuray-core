@@ -82,6 +82,8 @@ type Warning struct {
 	Content string `json:"content"`
 }
 
+type DieData struct{}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`

@@ -22,13 +22,15 @@ type Server struct {
 	DB            *db.DB
 	mutex         sync.Mutex
 	proxy_manager *proxy.ProxyManager
+	stop_sig      chan<- bool
 }
 
-func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool) *Server {
 	return &Server{
 		DB:            database,
 		clients:       make(map[string]net.Conn),
 		proxy_manager: proxy_manager,
+		stop_sig:      stop_sig,
 	}
 }
 
@@ -40,7 +42,6 @@ func (s *Server) Start() {
 		log.Fatal(err)
 		os.Exit(0)
 	}
-
 
 	log.Println("server is listening on port", app_config.CoreTCPPort)
 
@@ -140,6 +141,8 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 		}
 
 		switch raw_tcp_message.Msg {
+		case "die":
+			s.stop_sig <- true
 		case "add-profiles":
 			var data structs.AddProfilesData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
