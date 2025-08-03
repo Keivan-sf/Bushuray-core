@@ -24,7 +24,7 @@ func (db *DB) saveDBConfig(db_config structs.DBConfig) error {
 		log.Fatal("failed to stringify db config")
 	}
 
-	if err := os.WriteFile(db_config_file, json_data, 0644); err != nil {
+	if err := os.WriteFile(db_config_file, json_data, 0666); err != nil {
 		log.Fatal("failed to write to db config " + db_config_file + ": " + err.Error())
 	}
 	return nil

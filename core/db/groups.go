@@ -61,7 +61,7 @@ func (db *DB) updateGroup(group structs.Group) error {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(group_config_path, group_json, 0644)
+	err = os.WriteFile(group_config_path, group_json, 0666)
 	if err != nil {
 		return fmt.Errorf("failed to write %s: %w", group_config_path, err)
 	}
@@ -172,7 +172,7 @@ func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded
 		return group_added, err
 	}
 
-	err = os.MkdirAll(group_dir_path, 0755)
+	err = os.MkdirAll(group_dir_path, 0777)
 	if err != nil {
 		return group_added, err
 	}
@@ -189,7 +189,7 @@ func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(group_config_path, group_json, 0644)
+	err = os.WriteFile(group_config_path, group_json, 0666)
 	if err != nil {
 		return group_added, fmt.Errorf("failed to write %s: %w", group_config_path, err)
 	}
@@ -233,7 +233,7 @@ func (db *DB) saveGroupConfig(group structs.Group) error {
 		log.Fatal("failed to stringify default group config")
 	}
 
-	if err := os.WriteFile(group_conf_file, json_data, 0644); err != nil {
+	if err := os.WriteFile(group_conf_file, json_data, 0666); err != nil {
 		log.Fatal("failed to write to group config " + group_conf_file + ": " + err.Error())
 	}
 	return nil

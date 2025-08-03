@@ -1,6 +1,7 @@
 package appconfig
 
 import (
+	"bushuray-core/utils"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -48,9 +49,9 @@ func LoadConfig() {
 
 func readConfig() (AppConfig, error) {
 	var default_config AppConfig = defaultConfig()
-	home_dir, err := os.UserHomeDir()
+	home_dir, err := utils.GetHomeDir()
 	if err != nil {
-		return default_config, fmt.Errorf("cannot get user home directory")
+		return default_config, err
 	}
 	var dir_path = filepath.Join(home_dir, ".config", "bushuray")
 	var config_path = filepath.Join(dir_path, "config.json")
@@ -66,7 +67,7 @@ func readConfig() (AppConfig, error) {
 		return default_config, fmt.Errorf("failed to read config file")
 	}
 
-	if err := os.MkdirAll(dir_path, 0755); err != nil {
+	if err := os.MkdirAll(dir_path, 0777); err != nil {
 		return default_config, fmt.Errorf("config file was not found and failed to create config directory " + dir_path + ": " + err.Error())
 	}
 
@@ -76,7 +77,7 @@ func readConfig() (AppConfig, error) {
 		return default_config, fmt.Errorf("config file was not found and failed to parse default config: " + err.Error())
 	}
 
-	if err := os.WriteFile(config_path, default_config_json, 0644); err != nil {
+	if err := os.WriteFile(config_path, default_config_json, 0666); err != nil {
 		return default_config, fmt.Errorf("config file was not found and failed to write default config: " + err.Error())
 	}
 

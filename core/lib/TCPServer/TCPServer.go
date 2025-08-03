@@ -42,7 +42,7 @@ func (s *Server) Start() {
 	}
 
 
-	fmt.Println("server is listening on port", app_config.CoreTCPPort)
+	log.Println("server is listening on port", app_config.CoreTCPPort)
 
 	go s.handleStatusChange()
 	go s.handleTestResults()

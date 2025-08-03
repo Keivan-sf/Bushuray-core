@@ -22,7 +22,7 @@ func (db *DB) UpdateProfile(profile structs.Profile) error {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(profile_config_path, profile_json, 0644)
+	err = os.WriteFile(profile_config_path, profile_json, 0666)
 	if err != nil {
 		return fmt.Errorf("update error: failed to write %s: %w", profile_config_path, err)
 	}
@@ -103,7 +103,7 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(profile_path, profile_json, 0644)
+	err = os.WriteFile(profile_path, profile_json, 0666)
 	if err != nil {
 		return profile_added, fmt.Errorf("failed to write %s: %w", profile_path, err)
 	}
