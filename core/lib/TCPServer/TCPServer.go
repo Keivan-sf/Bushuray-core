@@ -6,6 +6,7 @@ import (
 	"bushuray-core/db"
 	appconfig "bushuray-core/lib/AppConfig"
 	proxy "bushuray-core/lib/proxy/mainproxy"
+	tunmode "bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"encoding/binary"
 	"encoding/json"
@@ -22,14 +23,16 @@ type Server struct {
 	DB            *db.DB
 	mutex         sync.Mutex
 	proxy_manager *proxy.ProxyManager
+	tun_namager   *tunmode.TunModeManager
 	stop_sig      chan<- bool
 }
 
-func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager, stop_sig chan<- bool) *Server {
 	return &Server{
 		DB:            database,
 		clients:       make(map[string]net.Conn),
 		proxy_manager: proxy_manager,
+		tun_namager:   tun_manager,
 		stop_sig:      stop_sig,
 	}
 }
@@ -45,6 +48,7 @@ func (s *Server) Start() {
 
 	log.Println("server is listening on port", app_config.CoreTCPPort)
 
+	go s.handleTunModeStatusChange()
 	go s.handleStatusChange()
 	go s.handleTestResults()
 
@@ -198,6 +202,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				return
 			}
 			command_handler.TestProfile(data, s.proxy_manager)
+
 		case "get-application-state":
 			var data structs.GetApplicationStateData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
@@ -213,6 +218,22 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				return
 			}
 			command_handler.UpdateSubscription(data)
+
+		case "enable-tun":
+			var data structs.EnableTunData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for enable-tun%v", err)
+				return
+			}
+			command_handler.EnableTun(data, s.tun_namager)
+
+		case "disable-tun":
+			var data structs.DisableTunData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for disable-tun%v", err)
+				return
+			}
+			command_handler.DisableTun(data, s.tun_namager)
 
 		default:
 			log.Println("Message not supported")
