@@ -8,6 +8,8 @@ type DBAddProfileData struct {
 	GroupId  int    `json:"group_id"`
 	Name     string `json:"name"`
 	Protocol string `json:"protocol"`
+	Address  string `json:"address,omitzero"`
+	Host     string `json:"host,omitzero"`
 }
 
 // commands and responses
@@ -107,6 +109,8 @@ type Profile struct {
 	Name       string `json:"name"`
 	Protocol   string `json:"protocol"`
 	Uri        string `json:"uri"`
+	Address    string `json:"address,omitzero"`
+	Host       string `json:"host,omitzero"`
 	TestResult int    `json:"test-result"`
 }
 

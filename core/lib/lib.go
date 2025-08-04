@@ -15,6 +15,8 @@ import (
 type profileMetaData struct {
 	Name     string `json:"name"`
 	Protocol string `json:"protocol"`
+	Address  string `json:"address,omitzero"`
+	Host     string `json:"host,omitzero"`
 }
 
 func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded {
@@ -61,6 +63,8 @@ func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileD
 	profile_data = structs.DBAddProfileData{
 		Protocol: profile_metadata.Protocol,
 		Name:     profile_metadata.Name,
+		Address:  profile_metadata.Address,
+		Host:     profile_metadata.Host,
 		Uri:      uri,
 		GroupId:  group_id,
 	}
