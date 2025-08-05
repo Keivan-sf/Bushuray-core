@@ -19,31 +19,32 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 		cmd.warn("enable-tun-failed", "A profile must be connected for tun mode to operate")
 		return
 	}
-	host := status.Profile.Host
-	address := status.Profile.Host
-	log.Println("host and address are:", host, address)
-	endpoint := ""
-	if host != "" {
-		endpoint = status.Profile.Host
-	} else {
-		endpoint = status.Profile.Address
-	}
+	endpoint := getEndPoint(status.Profile)
 	if endpoint == "" {
 		cmd.warn("enable-tun-failed", "no endpoint found for the connected profile")
 		return
 	}
-	log.Println("the endpoint is:", endpoint)
+
 	resolved, err := utils.ResolveDomain(endpoint)
 	if err != nil {
 		cmd.warn("enable-tun-failed", "failed to resolve connected end-point")
 		return
 	}
+
 	log.Println("resolved:", resolved)
 
-	// err := tun_manager.Start()
+
+	err = tun_manager.Start(resolved,  "8.8.8.8")
 	// if err != nil {
 	// 	log.Println(err.Error())
 	// 	cmd.warn("enable-tun-failed", "Failed to enable tun mode")
 	// 	return
 	// }
+}
+
+func getEndPoint(profile structs.Profile) string {
+	if profile.Host != "" {
+		return profile.Host
+	}
+	return profile.Address
 }

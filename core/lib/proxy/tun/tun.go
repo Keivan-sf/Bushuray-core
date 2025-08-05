@@ -2,23 +2,40 @@ package tunmode
 
 import (
 	// appconfig "bushuray-core/lib/AppConfig"
+	// "context"
+	"log"
+	"net"
 	"sync"
 )
 
 type TunModeManager struct {
 	mu            sync.Mutex
 	nekobox_core  NekoboxCore
+	tun_name      string
 	StatusChanged chan bool
 	IsEnabled     bool
 }
 
 func (t *TunModeManager) Init() {
+	t.tun_name = "bushuraytun"
 	t.nekobox_core = NekoboxCore{
 		Exited: make(chan error),
 	}
 }
 
-func (t *TunModeManager) Start() error {
+func (t *TunModeManager) Start(ips []net.IP, dns string) error {
+	// ctx, cancel := context.WithCancel(context.Background())
+	log.Println("running ip table commands")
+	err := cleanDnsHijackRules(t.tun_name, dns)
+	if err != nil {
+		log.Println("there was an error cleaning dns hijack rules", err)
+	}
+	err = setupDnsHijackRules(t.tun_name, dns)
+	if err != nil {
+		log.Println("there was an error setting up dns hijack rules", err)
+	}
+	log.Println("finished running ip table commands")
+
 	return nil
 	// if t.nekobox_core.IsRunning() {
 	// 	t.nekobox_core.Stop()
