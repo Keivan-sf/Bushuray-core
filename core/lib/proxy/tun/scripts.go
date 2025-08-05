@@ -8,7 +8,6 @@ import (
 )
 
 func runScriptWithSh(script string) (string, error) {
-	log.Println("running command:", script)
 	cmd := exec.Command("sh")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

@@ -27,7 +27,6 @@ func (t *TunModeManager) Start(ips []net.IP, dns string) error {
 	// ctx, cancel := context.WithCancel(context.Background())
 	log.Println("running ip commands")
 	iname, ip, err := GetDefaultInterfaceAndIP()
-	log.Println("default interface be like:", iname, ip)
 	if err != nil {
 		log.Println("failed on getting default interafce", err)
 		return nil
