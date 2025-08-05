@@ -3,7 +3,6 @@ package tunmode
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os/exec"
 )
 
