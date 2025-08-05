@@ -25,12 +25,18 @@ func (t *TunModeManager) Init() {
 
 func (t *TunModeManager) Start(ips []net.IP, dns string) error {
 	// ctx, cancel := context.WithCancel(context.Background())
-	log.Println("running ip table commands")
-	err := cleanDnsHijackRules(t.tun_name, dns)
+	log.Println("running ip commands")
+	iname, ip, err := GetDefaultInterfaceAndIP()
+	log.Println("default interface be like:", iname, ip)
+	if err != nil {
+		log.Println("failed on getting default interafce", err)
+		return nil
+	}
+	err = cleanDnsHijackRules(iname, ip, dns)
 	if err != nil {
 		log.Println("there was an error cleaning dns hijack rules", err)
 	}
-	err = setupDnsHijackRules(t.tun_name, dns)
+	err = setupDnsHijackRules(iname, ip, dns)
 	if err != nil {
 		log.Println("there was an error setting up dns hijack rules", err)
 	}
