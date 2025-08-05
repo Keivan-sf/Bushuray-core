@@ -25,7 +25,7 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 		return
 	}
 
-	resolved, err := utils.ResolveDomain(endpoint)
+	resolved, err := utils.ResolveDomainIpv4(endpoint)
 	if err != nil {
 		cmd.warn("enable-tun-failed", "failed to resolve connected end-point")
 		return
@@ -33,8 +33,7 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 
 	log.Println("resolved:", resolved)
 
-
-	err = tun_manager.Start(resolved,  "8.8.8.8")
+	err = tun_manager.Start(resolved, "8.8.8.8")
 	// if err != nil {
 	// 	log.Println(err.Error())
 	// 	cmd.warn("enable-tun-failed", "Failed to enable tun mode")
