@@ -225,7 +225,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for enable-tun%v", err)
 				return
 			}
-			command_handler.EnableTun(data, s.tun_namager)
+			command_handler.EnableTun(data, s.proxy_manager, s.tun_namager)
 
 		case "disable-tun":
 			var data structs.DisableTunData
