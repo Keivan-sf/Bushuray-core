@@ -6,6 +6,7 @@ import (
 	"bushuray-core/lib/AppConfig"
 	"bushuray-core/lib/TCPServer"
 	proxy "bushuray-core/lib/proxy/mainproxy"
+	tunmode "bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"fmt"
 	"log"
@@ -21,7 +22,10 @@ func main() {
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
 	proxy_manager.Init()
-	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig)
+	tun_manager := tunmode.TunModeManager{}
+	tun_manager.Init()
+
+	server := TCPServer.NewServer(&database, &proxy_manager, &tun_manager, stop_sig)
 	server.Start()
 	go func() {
 		sigs := make(chan os.Signal, 1)
@@ -35,6 +39,7 @@ func main() {
 		}
 		log.Println(reason)
 		proxy_manager.Stop()
+		tun_manager.Stop()
 		server.BroadCast(lib.CreateJsonNotification("warn", structs.Warning{Key: "died", Content: reason}))
 		os.Exit(0)
 	}()

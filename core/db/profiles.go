@@ -97,6 +97,8 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 		Name:     data.Name,
 		Protocol: data.Protocol,
 		Uri:      data.Uri,
+		Host:     data.Host,
+		Address:  data.Address,
 	}
 	profile_json, err := json.MarshalIndent(profile, "", " ")
 	if err != nil {
@@ -114,6 +116,8 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 		Id:         profile_id,
 		Protocol:   profile.Protocol,
 		Name:       profile.Name,
+		Host:       profile.Host,
+		Address:    profile.Address,
 		TestResult: 0,
 	}
 
