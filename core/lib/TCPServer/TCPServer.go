@@ -235,6 +235,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			command_handler.DisableTun(data, s.tun_namager)
 
+		case "is-root":
+			var data structs.IsRootData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for is-root%v", err)
+				return
+			}
+			command_handler.IsRoot(data)
+
 		default:
 			log.Println("Message not supported")
 		}
