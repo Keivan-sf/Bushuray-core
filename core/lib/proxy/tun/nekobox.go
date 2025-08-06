@@ -55,6 +55,7 @@ func (n *NekoboxCore) Start(tun_name string, port int) error {
 			case n.Exited <- err:
 				if n.running {
 					close(n.Exited)
+					n.channel_closed = true
 				}
 				n.running = false
 			default:

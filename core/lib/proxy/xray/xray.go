@@ -65,6 +65,7 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 			case x.Exited <- err:
 				if x.running {
 					close(x.Exited)
+					x.channel_closed = true
 				}
 				x.running = false
 			default:

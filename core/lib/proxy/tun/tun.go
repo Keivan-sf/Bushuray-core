@@ -5,22 +5,28 @@ import (
 	// "context"
 	// appconfig "bushuray-core/lib/AppConfig"
 	appconfig "bushuray-core/lib/AppConfig"
+	"errors"
 	"log"
 	"sync"
 )
 
 type TunModeManager struct {
-	mu            sync.Mutex
-	nekobox_core  NekoboxCore
-	tun_name      string
-	tun_ip        string
-	StatusChanged chan bool
-	IsEnabled     bool
+	mu                   sync.Mutex
+	nekobox_core         NekoboxCore
+	tun_name             string
+	tun_ip               string
+	default_interface    string
+	default_interface_ip string
+	proxy_ipv4s          []string
+	dns                  string
+	StatusChanged        chan bool
+	IsEnabled            bool
 }
 
 func (t *TunModeManager) Init() {
 	t.tun_name = "bushuraytun"
 	t.tun_ip = "198.18.0.1"
+	t.StatusChanged = make(chan bool)
 	t.nekobox_core = NekoboxCore{
 		Exited: make(chan error),
 	}
@@ -35,53 +41,42 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 		return nil
 	}
 
-	err = cleanDnsHijackRules(interface_name, interface_ip, dns)
+	t.default_interface_ip = interface_ip
+	t.default_interface = interface_name
+	t.proxy_ipv4s = proxy_ipv4s
+	t.dns = dns
+
+	err = t.clearNetworkRules()
 	if err != nil {
-		log.Println("there was an error cleaning dns hijack rules", err)
+		log.Println("there was an error clearing network rules", err)
 	}
 
-	err = setupDnsHijackRules(interface_name, interface_ip, dns)
+	err = setupDnsHijackRules(t.default_interface, t.default_interface_ip, t.dns)
 	if err != nil {
 		log.Println("there was an error setting up dns hijack rules", err)
 	}
 
-	err = deleteTun(t.tun_name)
-	if err != nil {
-		log.Println("there was an error deleting tun interface", err)
-	}
-
 	err = createTun(t.tun_name, t.tun_ip)
 	if err != nil {
+		t.clearNetworkRules()
 		log.Println("there was an error creating tun interface", err)
 	}
 
-	err = deleteProxyIpRoutes(proxy_ipv4s, interface_ip)
+	err = setupProxyIpRoutes(t.proxy_ipv4s, t.default_interface_ip)
 	if err != nil {
-		log.Println("there was an error deleting proxy ip routes", err)
-	}
-
-	err = setupProxyIpRoutes(proxy_ipv4s, interface_ip)
-	if err != nil {
+		t.clearNetworkRules()
 		log.Println("there was an error setting up proxy ip routes", err)
 	}
 
-	err = deleteDnsIpRoute(dns, interface_ip)
+	err = setupDnsIpRoute(t.dns, t.default_interface_ip)
 	if err != nil {
-		log.Println("there was an error deleting dns ip route", err)
-	}
-
-	err = setupDnsIpRoute(dns, interface_ip)
-	if err != nil {
+		t.clearNetworkRules()
 		log.Println("there was an error setting up dns ip route", err)
-	}
-
-	err = deleteTunIpRoute(t.tun_name, t.tun_ip)
-	if err != nil {
-		log.Println("there was an error deleting tun ip route", err)
 	}
 
 	err = setupTunIpRoute(t.tun_name, t.tun_ip)
 	if err != nil {
+		t.clearNetworkRules()
 		log.Println("there was an error setting up tun ip route", err)
 	}
 
@@ -123,9 +118,21 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 }
 
 func (t *TunModeManager) Stop() {
-	// t.mu.Lock()
-	// defer t.mu.Unlock()
-	// t.nekobox_core.Stop()
-	// t.IsEnabled = false
-	// t.StatusChanged <- t.IsEnabled
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.clearNetworkRules()
+	t.nekobox_core.Stop()
+	t.IsEnabled = false
+	t.StatusChanged <- t.IsEnabled
+}
+
+func (t *TunModeManager) clearNetworkRules() error {
+	errs := []error{
+		deleteTunIpRoute(t.tun_name, t.tun_ip),
+		deleteTun(t.tun_name),
+		deleteDnsIpRoute(t.dns, t.default_interface_ip),
+		cleanDnsHijackRules(t.default_interface, t.default_interface_ip, t.dns),
+		deleteProxyIpRoutes(t.proxy_ipv4s, t.default_interface_ip),
+	}
+	return errors.Join(errs...)
 }
