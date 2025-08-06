@@ -13,7 +13,7 @@ import (
 
 type TunModeManager struct {
 	mu                   sync.Mutex
-	nekobox_core         NekoboxCore
+	nekobox_core         Tun2Socks
 	tun_name             string
 	tun_ip               string
 	default_interface    string
@@ -28,7 +28,7 @@ func (t *TunModeManager) Init() {
 	t.tun_name = "bushuraytun"
 	t.tun_ip = "198.18.0.1"
 	t.StatusChanged = make(chan bool)
-	t.nekobox_core = NekoboxCore{
+	t.nekobox_core = Tun2Socks{
 		Exited: make(chan error),
 	}
 }
@@ -84,7 +84,7 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 		t.nekobox_core.Stop()
 	}
 
-	t.nekobox_core = NekoboxCore{
+	t.nekobox_core = Tun2Socks{
 		Exited: make(chan error),
 	}
 

@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-type NekoboxCore struct {
+type Tun2Socks struct {
 	mu             sync.Mutex
 	cmd            *exec.Cmd
 	cancel         context.CancelFunc
@@ -19,7 +19,7 @@ type NekoboxCore struct {
 	Exited         chan error
 }
 
-func (n *NekoboxCore) Start(tun_name string, port int) error {
+func (n *Tun2Socks) Start(tun_name string, port int) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
@@ -29,10 +29,10 @@ func (n *NekoboxCore) Start(tun_name string, port int) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	nekoboxbin := path.Join(lib.GetWorkingDir(), "bin", "tun2socks")
+	tun2socksbin := path.Join(lib.GetWorkingDir(), "bin", "tun2socks")
 	socks_proxy := fmt.Sprintf("socks5://127.0.0.1:%d", port)
 	// ./tun2socks-linux-amd64 -device bushuraytun -proxy socks5://127.0.0.1:3090
-	cmd := exec.CommandContext(ctx, nekoboxbin, "-device", tun_name, "-proxy", socks_proxy)
+	cmd := exec.CommandContext(ctx, tun2socksbin, "-device", tun_name, "-proxy", socks_proxy)
 
 	cmd.Stdout = nil
 	cmd.Stderr = nil
@@ -68,7 +68,7 @@ func (n *NekoboxCore) Start(tun_name string, port int) error {
 	return nil
 }
 
-func (n *NekoboxCore) Stop() {
+func (n *Tun2Socks) Stop() {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	if !n.channel_closed {
@@ -87,7 +87,7 @@ func (n *NekoboxCore) Stop() {
 	n.running = false
 }
 
-func (n *NekoboxCore) IsRunning() bool {
+func (n *Tun2Socks) IsRunning() bool {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	return n.running
