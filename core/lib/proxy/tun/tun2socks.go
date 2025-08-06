@@ -1,12 +1,11 @@
 package tunmode
 
 import (
-	"bushuray-core/lib"
+	"bushuray-core/utils"
 	"context"
 	"fmt"
 	"log"
 	"os/exec"
-	"path"
 	"sync"
 )
 
@@ -27,11 +26,13 @@ func (n *Tun2Socks) Start(tun_name string, port int) error {
 		return fmt.Errorf("command is already running")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	tun2socksbin, err := utils.GetTun2socksBin()
+	if err != nil {
+		return fmt.Errorf("failed to start tun: %w", err)
+	}
 
-	tun2socksbin := path.Join(lib.GetWorkingDir(), "bin", "tun2socks")
+	ctx, cancel := context.WithCancel(context.Background())
 	socks_proxy := fmt.Sprintf("socks5://127.0.0.1:%d", port)
-	// ./tun2socks-linux-amd64 -device bushuraytun -proxy socks5://127.0.0.1:3090
 	cmd := exec.CommandContext(ctx, tun2socksbin, "-device", tun_name, "-proxy", socks_proxy)
 
 	cmd.Stdout = nil

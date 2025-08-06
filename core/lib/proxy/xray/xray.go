@@ -1,12 +1,11 @@
 package xray
 
 import (
-	"bushuray-core/lib"
+	"bushuray-core/utils"
 	"context"
 	"fmt"
 	"log"
 	"os/exec"
-	"path"
 	"sync"
 )
 
@@ -27,10 +26,12 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 		return fmt.Errorf("command is already running")
 	}
 
+	xraybin, err := utils.GetXrayBin()
+	if err != nil {
+		return fmt.Errorf("failed to start xray %w", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
-
-	xraybin := path.Join(lib.GetWorkingDir(), "bin", "xray")
-
 	cmd := exec.CommandContext(ctx, xraybin, "run")
 	stdin, err := cmd.StdinPipe()
 
