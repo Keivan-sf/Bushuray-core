@@ -5,11 +5,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"path"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -22,7 +19,7 @@ type NekoboxCore struct {
 	Exited         chan error
 }
 
-func (n *NekoboxCore) Start(port int) error {
+func (n *NekoboxCore) Start(tun_name string, port int) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
@@ -32,14 +29,10 @@ func (n *NekoboxCore) Start(port int) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	tun_config := strings.Replace(json_config_template, "%SOCKSPORT%", strconv.Itoa(port), 1)
-	tun_config_path := path.Join("/", "tmp", "bushuray-tun-config.json")
-
-	os.WriteFile(tun_config_path, []byte(tun_config), 0777)
-
-	nekoboxbin := path.Join(lib.GetWorkingDir(), "bin", "nekobox_core")
-
-	cmd := exec.CommandContext(ctx, nekoboxbin, "run", "-c", tun_config_path)
+	nekoboxbin := path.Join(lib.GetWorkingDir(), "bin", "tun2socks")
+	socks_proxy := fmt.Sprintf("socks5://127.0.0.1:%d", port)
+	// ./tun2socks-linux-amd64 -device bushuraytun -proxy socks5://127.0.0.1:3090
+	cmd := exec.CommandContext(ctx, nekoboxbin, "-device", tun_name, "-proxy", socks_proxy)
 
 	cmd.Stdout = nil
 	cmd.Stderr = nil

@@ -5,6 +5,8 @@ import (
 	"bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"bushuray-core/utils"
+	"errors"
+	"fmt"
 	"log"
 )
 
@@ -19,15 +21,11 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 		cmd.warn("enable-tun-failed", "A profile must be connected for tun mode to operate")
 		return
 	}
-	endpoint := getEndPoint(status.Profile)
-	if endpoint == "" {
-		cmd.warn("enable-tun-failed", "no endpoint found for the connected profile")
-		return
-	}
 
-	resolved, err := utils.ResolveDomainIpv4(endpoint)
+	resolved, err := resolveHostAndAddress(status.Profile)
 	if err != nil {
-		cmd.warn("enable-tun-failed", "failed to resolve connected end-point")
+		log.Println(err)
+		cmd.warn("enable-tun-failed", "failed to resolve profile host")
 		return
 	}
 
@@ -41,9 +39,28 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 	// }
 }
 
-func getEndPoint(profile structs.Profile) string {
+func resolveHostAndAddress(profile structs.Profile) ([]string, error) {
+	var ipv4s []string
+	var errs []error
 	if profile.Host != "" {
-		return profile.Host
+		resolved, err := utils.ResolveDomainIpv4(profile.Host)
+		if err == nil {
+			ipv4s = append(ipv4s, resolved...)
+		} else {
+			errs = append(errs, err)
+		}
 	}
-	return profile.Address
+	if profile.Address != "" {
+		resolved, err := utils.ResolveDomainIpv4(profile.Address)
+		if err == nil {
+			ipv4s = append(ipv4s, resolved...)
+		} else {
+			errs = append(errs, err)
+		}
+	}
+	if len(ipv4s) == 0 {
+		return ipv4s, fmt.Errorf("failed to resolve any ipv4s: %w", errors.Join(errs...))
+	}
+	log.Println("at the end2:", ipv4s)
+	return ipv4s, nil
 }

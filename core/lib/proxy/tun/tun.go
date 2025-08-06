@@ -3,6 +3,8 @@ package tunmode
 import (
 	// appconfig "bushuray-core/lib/AppConfig"
 	// "context"
+	// appconfig "bushuray-core/lib/AppConfig"
+	appconfig "bushuray-core/lib/AppConfig"
 	"log"
 	"sync"
 )
@@ -24,7 +26,7 @@ func (t *TunModeManager) Init() {
 	}
 }
 
-func (t *TunModeManager) Start(proxy_ipv4 string, dns string) error {
+func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 	// ctx, cancel := context.WithCancel(context.Background())
 	log.Println("running ip commands")
 	interface_name, interface_ip, err := GetDefaultInterfaceAndIP()
@@ -53,52 +55,71 @@ func (t *TunModeManager) Start(proxy_ipv4 string, dns string) error {
 		log.Println("there was an error creating tun interface", err)
 	}
 
-	err = deleteIpRoutes(t.tun_name, t.tun_ip, interface_ip, proxy_ipv4, dns)
+	err = deleteProxyIpRoutes(proxy_ipv4s, interface_ip)
 	if err != nil {
-		log.Println("there was an error deleting ip routes", err)
+		log.Println("there was an error deleting proxy ip routes", err)
 	}
 
-	err = setupIpRoutes(t.tun_name, t.tun_ip, interface_ip, proxy_ipv4, dns)
+	err = setupProxyIpRoutes(proxy_ipv4s, interface_ip)
 	if err != nil {
-		log.Println("there was an error setting up ip routes", err)
+		log.Println("there was an error setting up proxy ip routes", err)
+	}
+
+	err = deleteDnsIpRoute(dns, interface_ip)
+	if err != nil {
+		log.Println("there was an error deleting dns ip route", err)
+	}
+
+	err = setupDnsIpRoute(dns, interface_ip)
+	if err != nil {
+		log.Println("there was an error setting up dns ip route", err)
+	}
+
+	err = deleteTunIpRoute(t.tun_name, t.tun_ip)
+	if err != nil {
+		log.Println("there was an error deleting tun ip route", err)
+	}
+
+	err = setupTunIpRoute(t.tun_name, t.tun_ip)
+	if err != nil {
+		log.Println("there was an error setting up tun ip route", err)
 	}
 
 	log.Println("finished running ip commands")
+	if t.nekobox_core.IsRunning() {
+		t.nekobox_core.Stop()
+	}
+
+	t.nekobox_core = NekoboxCore{
+		Exited: make(chan error),
+	}
+
+	if t.IsEnabled {
+		t.IsEnabled = false
+		t.StatusChanged <- t.IsEnabled
+	}
+
+	if err := t.nekobox_core.Start(t.tun_name, appconfig.GetConfig().SocksPort); err != nil {
+		return err
+	}
+
+	t.IsEnabled = true
+	t.StatusChanged <- t.IsEnabled
+
+	go func() {
+		for {
+			_, ok := <-t.nekobox_core.Exited
+			if !ok {
+				return
+			}
+			t.mu.Lock()
+			t.IsEnabled = false
+			t.StatusChanged <- t.IsEnabled
+			t.mu.Unlock()
+		}
+	}()
+
 	return nil
-	// if t.nekobox_core.IsRunning() {
-	// 	t.nekobox_core.Stop()
-	// }
-	//
-	// t.nekobox_core = NekoboxCore{
-	// 	Exited: make(chan error),
-	// }
-	//
-	// if t.IsEnabled {
-	// 	t.IsEnabled = false
-	// 	t.StatusChanged <- t.IsEnabled
-	// }
-	//
-	// if err := t.nekobox_core.Start(appconfig.GetConfig().SocksPort); err != nil {
-	// 	return err
-	// }
-	//
-	// t.IsEnabled = true
-	// t.StatusChanged <- t.IsEnabled
-	//
-	// go func() {
-	// 	for {
-	// 		_, ok := <-t.nekobox_core.Exited
-	// 		if !ok {
-	// 			return
-	// 		}
-	// 		t.mu.Lock()
-	// 		t.IsEnabled = false
-	// 		t.StatusChanged <- t.IsEnabled
-	// 		t.mu.Unlock()
-	// 	}
-	// }()
-	//
-	// return nil
 }
 
 func (t *TunModeManager) Stop() {
