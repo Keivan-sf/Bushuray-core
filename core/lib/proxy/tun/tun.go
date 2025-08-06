@@ -13,7 +13,7 @@ import (
 
 type TunModeManager struct {
 	mu                   sync.Mutex
-	nekobox_core         Tun2Socks
+	tun2socks         Tun2Socks
 	tun_name             string
 	tun_ip               string
 	default_interface    string
@@ -28,7 +28,7 @@ func (t *TunModeManager) Init() {
 	t.tun_name = "bushuraytun"
 	t.tun_ip = "198.18.0.1"
 	t.StatusChanged = make(chan bool)
-	t.nekobox_core = Tun2Socks{
+	t.tun2socks = Tun2Socks{
 		Exited: make(chan error),
 	}
 }
@@ -80,11 +80,11 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 	}
 
 	log.Println("finished running ip commands")
-	if t.nekobox_core.IsRunning() {
-		t.nekobox_core.Stop()
+	if t.tun2socks.IsRunning() {
+		t.tun2socks.Stop()
 	}
 
-	t.nekobox_core = Tun2Socks{
+	t.tun2socks = Tun2Socks{
 		Exited: make(chan error),
 	}
 
@@ -93,7 +93,7 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 		t.StatusChanged <- t.IsEnabled
 	}
 
-	if err := t.nekobox_core.Start(t.tun_name, appconfig.GetConfig().SocksPort); err != nil {
+	if err := t.tun2socks.Start(t.tun_name, appconfig.GetConfig().SocksPort); err != nil {
 		return err
 	}
 
@@ -102,7 +102,7 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 
 	go func() {
 		for {
-			_, ok := <-t.nekobox_core.Exited
+			_, ok := <-t.tun2socks.Exited
 			if !ok {
 				return
 			}
@@ -120,7 +120,7 @@ func (t *TunModeManager) Stop() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.clearNetworkRules()
-	t.nekobox_core.Stop()
+	t.tun2socks.Stop()
 	t.IsEnabled = false
 	t.StatusChanged <- t.IsEnabled
 }
