@@ -86,6 +86,11 @@ type Warning struct {
 
 type DieData struct{}
 
+type IsRootData struct{}
+type IsRootAnswer struct {
+	IsRoot bool
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`
