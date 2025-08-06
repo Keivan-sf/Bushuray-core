@@ -13,7 +13,7 @@ import (
 
 type TunModeManager struct {
 	mu                   sync.Mutex
-	tun2socks         Tun2Socks
+	tun2socks            Tun2Socks
 	tun_name             string
 	tun_ip               string
 	default_interface    string
@@ -119,6 +119,10 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 func (t *TunModeManager) Stop() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	if !t.IsEnabled {
+		log.Printf("tried to stop an already stopped tun")
+		return
+	}
 	t.clearNetworkRules()
 	t.tun2socks.Stop()
 	t.IsEnabled = false
