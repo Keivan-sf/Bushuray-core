@@ -32,11 +32,11 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 	log.Println("resolved:", resolved)
 
 	err = tun_manager.Start(resolved, "8.8.8.8")
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// 	cmd.warn("enable-tun-failed", "Failed to enable tun mode")
-	// 	return
-	// }
+	if err != nil {
+		log.Println(err.Error())
+		cmd.warn("enable-tun-failed", "Failed to enable tun mode")
+		return
+	}
 }
 
 func resolveHostAndAddress(profile structs.Profile) ([]string, error) {

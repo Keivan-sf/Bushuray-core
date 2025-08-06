@@ -6,6 +6,7 @@ import (
 	// appconfig "bushuray-core/lib/AppConfig"
 	appconfig "bushuray-core/lib/AppConfig"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 )
@@ -33,12 +34,10 @@ func (t *TunModeManager) Init() {
 }
 
 func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
-	// ctx, cancel := context.WithCancel(context.Background())
 	log.Println("running ip commands")
 	interface_name, interface_ip, err := GetDefaultInterfaceAndIP()
 	if err != nil {
-		log.Println("failed on getting default interafce", err)
-		return nil
+		return fmt.Errorf("failed on getting default interafce %w", err)
 	}
 
 	t.default_interface_ip = interface_ip
@@ -48,36 +47,36 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 
 	err = t.clearNetworkRules()
 	if err != nil {
-		log.Println("there was an error clearing network rules", err)
+		return fmt.Errorf("there was an error clearing network rules %w", err)
 	}
 
 	err = setupDnsHijackRules(t.default_interface, t.default_interface_ip, t.dns)
 	if err != nil {
-		log.Println("there was an error setting up dns hijack rules", err)
+		return fmt.Errorf("there was an error setting up dns hijack rules %w", err)
 	}
 
 	err = createTun(t.tun_name, t.tun_ip)
 	if err != nil {
 		t.clearNetworkRules()
-		log.Println("there was an error creating tun interface", err)
+		return fmt.Errorf("there was an error creating tun interface %w", err)
 	}
 
 	err = setupProxyIpRoutes(t.proxy_ipv4s, t.default_interface_ip)
 	if err != nil {
 		t.clearNetworkRules()
-		log.Println("there was an error setting up proxy ip routes", err)
+		return fmt.Errorf("there was an error setting up proxy ip routes %w", err)
 	}
 
 	err = setupDnsIpRoute(t.dns, t.default_interface_ip)
 	if err != nil {
 		t.clearNetworkRules()
-		log.Println("there was an error setting up dns ip route", err)
+		return fmt.Errorf("there was an error setting up dns ip route %w", err)
 	}
 
 	err = setupTunIpRoute(t.tun_name, t.tun_ip)
 	if err != nil {
 		t.clearNetworkRules()
-		log.Println("there was an error setting up tun ip route", err)
+		return fmt.Errorf("there was an error setting up tun ip route %w", err)
 	}
 
 	log.Println("finished running ip commands")
