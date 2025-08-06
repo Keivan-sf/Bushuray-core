@@ -16,14 +16,14 @@ type Cmd struct {
 
 func (cmd *Cmd) DeleteGroup(data structs.DeleteGroupData) {
 	if data.Id == 0 {
-		// cannot delete default group
+		cmd.warn("delete-group-failed", "cannot delete default group")
 		return
 	}
 
 	err := cmd.DB.DeleteGroup(data.Id)
 	if err != nil {
-		log.Printf("there was an error adding group %s", err.Error())
-		// handle err , warn clients
+		log.Printf("there was an error deleting group %s", err.Error())
+		cmd.warn("delete-group-failed", "there was an error deleting group")
 		return
 	}
 	group_deleted := structs.GroupDeleted{
@@ -36,7 +36,7 @@ func (cmd *Cmd) AddGroup(data structs.AddGroupData) {
 	group_added, err := cmd.DB.AddGroup(data.Name, data.SubscriptionUrl)
 	if err != nil {
 		log.Printf("there was an error adding group %s", err.Error())
-		// handle err
+		cmd.warn("add-group-failed", "there was an error adding group")
 		return
 	}
 	cmd.send("group-added", group_added)

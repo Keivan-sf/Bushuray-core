@@ -3,12 +3,10 @@ package lib
 import (
 	"bushuray-core/db"
 	"bushuray-core/structs"
+	"bushuray-core/utils"
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"os/exec"
-	"path"
 	"strings"
 )
 
@@ -47,9 +45,12 @@ func GetDBAddProfileDatasFromStr(str string, group_id int) []structs.DBAddProfil
 }
 
 func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileData, error) {
-	v2parserbin := path.Join(GetWorkingDir(), "bin", "v2parser")
-	v2parser_metadata_cmd := exec.Command(v2parserbin, uri, "--get-metadata")
 	var profile_data structs.DBAddProfileData
+	v2parserbin, err := utils.GetV2parserBin()
+	if err != nil {
+		return profile_data, fmt.Errorf("failed to parse uri: %w", err)
+	}
+	v2parser_metadata_cmd := exec.Command(v2parserbin, uri, "--get-metadata")
 	metadata_output, err := v2parser_metadata_cmd.Output()
 	if err != nil {
 		return profile_data, fmt.Errorf("getting metadata failed: %w", err)
@@ -69,12 +70,4 @@ func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileD
 		GroupId:  group_id,
 	}
 	return profile_data, nil
-}
-
-func GetWorkingDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return dir
 }

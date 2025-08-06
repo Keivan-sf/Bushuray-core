@@ -1,8 +1,8 @@
 package db
 
 import (
-	"bushuray-core/utils"
 	"bushuray-core/structs"
+	"bushuray-core/utils"
 	"encoding/json"
 	"log"
 	"os"
@@ -14,7 +14,7 @@ func (db *DB) Initialize() {
 	if err != nil {
 		log.Fatal("cannot get user home directory")
 	}
-	var db_path = filepath.Join(homeDir, ".config", "bushuray", "db")
+	var db_path = filepath.Join(homeDir, ".local", "share", "bushuray", "db")
 	db.Path = db_path
 	if err := os.MkdirAll(db_path, 0777); err != nil {
 		log.Fatal("failed to create database directory " + db_path + ": " + err.Error())
