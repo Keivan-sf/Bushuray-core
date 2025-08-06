@@ -193,7 +193,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for disconnect %v", err)
 				return
 			}
-			command_handler.Disconnect(data, s.proxy_manager)
+			command_handler.Disconnect(data, s.proxy_manager, s.tun_namager)
 
 		case "test-profile":
 			var data structs.TestProfileData
