@@ -185,7 +185,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for connect %v", err)
 				return
 			}
-			command_handler.Connect(data, s.proxy_manager)
+			command_handler.Connect(data, s.proxy_manager, s.tun_namager)
 
 		case "disconnect":
 			var data structs.DisconnectData

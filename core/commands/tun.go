@@ -22,7 +22,11 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 		return
 	}
 
-	resolved, err := resolveHostAndAddress(status.Profile)
+	cmd.enableTun(status.Profile, tun_manager)
+}
+
+func (cmd *Cmd) enableTun(profile structs.Profile, tun_manager *tunmode.TunModeManager) {
+	resolved, err := resolveHostAndAddress(profile)
 	if err != nil {
 		log.Println(err)
 		cmd.warn("enable-tun-failed", "failed to resolve profile host")

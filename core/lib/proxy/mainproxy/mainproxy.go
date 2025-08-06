@@ -44,11 +44,6 @@ func (p *ProxyManager) Init() {
 func (p *ProxyManager) Connect(profile structs.Profile) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	app_config := appconfig.GetConfig()
-	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort)
-	if err != nil {
-		return err
-	}
 
 	if p.xray_core.IsRunning() {
 		p.xray_core.Stop()
@@ -63,6 +58,12 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 			Connection: "disconnected",
 		}
 		p.StatusChanged <- p.status
+	}
+
+	app_config := appconfig.GetConfig()
+	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort)
+	if err != nil {
+		return err
 	}
 
 	if err := p.xray_core.Start(xray_config); err != nil {
