@@ -209,7 +209,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for get-application-state%v", err)
 				return
 			}
-			command_handler.GetApplicationState(data, s.proxy_manager)
+			command_handler.GetApplicationState(data, s.proxy_manager, s.tun_namager)
 
 		case "update-subscription":
 			var data structs.UpdateSubscriptionData
