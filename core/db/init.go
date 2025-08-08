@@ -7,9 +7,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"syscall"
 )
 
 func (db *DB) Initialize() {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
 	homeDir, err := utils.GetHomeDir()
 	if err != nil {
 		log.Fatal("cannot get user home directory")
@@ -24,6 +27,8 @@ func (db *DB) Initialize() {
 }
 
 func (db *DB) ensureDefaultGroupExistance() {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
 	var default_group_dir = filepath.Join(db.Path, "groups", "0")
 
 	if err := os.MkdirAll(default_group_dir, 0777); err != nil {
@@ -59,6 +64,9 @@ func (db *DB) ensureDefaultGroupExistance() {
 }
 
 func (db *DB) ensureDBConfigExistance() {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	db_config_path := db.GetDBConfigFile()
 
 	if _, err := os.Stat(db_config_path); err == nil {

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+	"syscall"
 )
 
 type DB struct {
@@ -17,6 +18,9 @@ type DB struct {
 }
 
 func (db *DB) saveDBConfig(db_config structs.DBConfig) error {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	db_config_file := db.GetDBConfigFile()
 	json_data, err := json.MarshalIndent(db_config, "", " ")
 

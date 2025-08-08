@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfileData) ([]structs.Profile, error) {
@@ -55,6 +56,8 @@ func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfi
 }
 
 func (db *DB) updateGroup(group structs.Group) error {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
 	group_config_path := db.GetGroupConfigFilePath(group.Id)
 	group_json, err := json.MarshalIndent(group, "", " ")
 	if err != nil {
@@ -151,6 +154,9 @@ func (db *DB) deleteGroup(id int) error {
 }
 
 func (db *DB) AddGroup(name string, subscription_url string) (structs.GroupAdded, error) {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	var group_added structs.GroupAdded
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -226,6 +232,9 @@ func (db *DB) loadGroupConfig(id int) (structs.Group, error) {
 }
 
 func (db *DB) saveGroupConfig(group structs.Group) error {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	group_conf_file := db.GetGroupConfigFilePath(group.Id)
 	json_data, err := json.MarshalIndent(group, "", " ")
 

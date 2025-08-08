@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"syscall"
 )
 
 func (db *DB) UpdateProfile(profile structs.Profile) error {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	profile_config_path := db.GetProfileFilePath(profile.GroupId, profile.Id)
@@ -74,6 +78,9 @@ func (db *DB) getProfile(group_id int, id int) (structs.Profile, error) {
 }
 
 func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error) {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
 	var profile_added structs.Profile
 	group_data, err := db.loadGroupConfig(data.GroupId)
 	if err != nil {
