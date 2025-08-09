@@ -27,7 +27,7 @@ func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData) {
 		cmd.warn("update-subscription-failed", "Failed to add new subscription content to database")
 		return
 	}
-	cmd.send("subscription-updated", structs.SubscriptionUpdated{Profiles: profiles})
+	cmd.send("subscription-updated", structs.SubscriptionUpdated{GroupId: data.GroupId, Profiles: profiles})
 
 }
 
