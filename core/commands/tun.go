@@ -21,6 +21,10 @@ func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.Proxy
 		cmd.warn("enable-tun-failed", "A profile must be connected for tun mode to operate")
 		return
 	}
+	if tun_manager.IsEnabled {
+		cmd.warn("enable-tun-failed", "tun mode is already enabled")
+		return
+	}
 
 	cmd.enableTun(status.Profile, tun_manager)
 }
