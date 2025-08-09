@@ -4,10 +4,12 @@ import (
 	"bushuray-core/db"
 	"bushuray-core/structs"
 	"bushuray-core/utils"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
+	"unicode/utf8"
 )
 
 type profileMetaData struct {
@@ -32,6 +34,7 @@ func AddProfiles(DB *db.DB, data structs.AddProfilesData) structs.ProfilesAdded 
 }
 
 func GetDBAddProfileDatasFromStr(str string, group_id int) []structs.DBAddProfileData {
+	str = decode64(str)
 	uris := strings.FieldsSeq(str)
 	var profiles []structs.DBAddProfileData
 	for uri := range uris {
@@ -70,4 +73,15 @@ func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileD
 		GroupId:  group_id,
 	}
 	return profile_data, nil
+}
+
+func decode64(str string) string {
+	decoded, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return str
+	}
+	if utf8.Valid(decoded) {
+		return string(decoded)
+	}
+	return str
 }

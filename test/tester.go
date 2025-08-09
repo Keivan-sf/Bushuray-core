@@ -7,7 +7,13 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
+	"time"
 )
+
+type IsRootData struct{}
+type DisableTunData struct{}
+type EnableTunData struct{}
 
 type TcpMessage struct {
 	Msg  string          `json:"msg"`
@@ -81,38 +87,35 @@ func main() {
 
 	// send(conn, map[string]interface{}{"type": "hello", "value": 123})
 
-	// send(conn, Message[AddGroupData]{Msg: "add-group", Data: AddGroupData{
-	// 	Name:            "new_group",
-	// 	SubscriptionUrl: "https://none",
-	// }})
-
 	// send(conn, Message[DeleteGroupData]{Msg: "delete-group", Data: DeleteGroupData{
 	// 	Id: 3,
 	// }})
-
-	// send(conn, Message[AddProfilesData]{Msg: "add-profiles", Data: AddProfilesData{
-	// 	Uris:    "vless://034175fb-3436-49f3-8ec6-acc1d28b7268@api.dota.website:443?security=tls&sni=api.dota.website&alpn=http/1.1&allowInsecure=1&type=ws&path=/ws/639b01fc6d01f4e9f7e1f19c/D&host=sympathetic.dota.website&packetEncoding=xudp&encryption=none#%F0%9F%9A%80%20@SmoothVPN%20-%20D",
-	// 	GroupId: 0}},
-	// )
-
+	//
+	for i := range 0 {
+		send(conn, Message[AddProfilesData]{Msg: "add-profiles", Data: AddProfilesData{
+			Uris:    "vless://034175fb-3436-49f3-8ec6-acc1d28b7268@api.dota.website:443?security=tls&sni=api.dota.website&alpn=http/1.1&allowInsecure=1&type=ws&path=/ws/639b01fc6d01f4e9f7e1f19c/D&host=sympathetic.dota.website&packetEncoding=xudp&encryption=none#%F0%9F%9A%80%20@Sm22oothVPN%20-%20D" + strconv.Itoa(i+3),
+			GroupId: 0}},
+		)
+	}
+	//
 	// send(conn, Message[ConnectData]{Msg: "connect", Data: ConnectData{
 	// 	Profile: ProfileID{
-	// 		Id:      111,
+	// 		Id:      3,
 	// 		GroupId: 0,
 	// 	},
 	// }})
 
 	// time.Sleep(3 * time.Second)
-	// send(conn, Message[DisconnectData]{Msg: "disconnect", Data: DisconnectData{}})
+	send(conn, Message[DisconnectData]{Msg: "disconnect", Data: DisconnectData{}})
 	// for range 20 {
-	// 	send(conn, Message[TestProfileData]{Msg: "test-profile", Data: TestProfileData{
-	// 		Profile: ProfileID{
-	// 			GroupId: 0,
-	// 			Id:      2,
-	// 		},
+	// send(conn, Message[TestProfileData]{Msg: "test-profile", Data: TestProfileData{
+	// 	Profile: ProfileID{
+	// 		GroupId: 0,
+	// 		Id:      2,
 	// 	},
-	// 	},
-	// 	)
+	// },
+	// },
+	// )
 	// }
 	// send(conn, Message[GetApplicationStateData]{Msg: "get-application-state", Data: GetApplicationStateData{}})
 
@@ -121,13 +124,30 @@ func main() {
 	// 	SubscriptionUrl: "http://localhost:3949/",
 	// }})
 
+	// send(conn, Message[AddGroupData]{Msg: "add-group", Data: AddGroupData{
+	// 	Name:            "Remote irancell2",
+	// 	SubscriptionUrl: "https://ls.keivansf.ir/s/irancell",
+	// }})
+
 	// send(conn, Message[UpdateSubscriptionData]{Msg: "update-subscription",
 	// 	Data: UpdateSubscriptionData{
-	// 		GroupId: 1,
+	// 		GroupId: 4,
 	// 	},
 	// })
 
-	send(conn, Message[DieData]{Msg: "die", Data: DieData{}})
+	// send(conn, Message[IsRootData]{Msg: "is-root", Data: IsRootData{}})
+	// send(conn, Message[DieData]{Msg: "die", Data: DieData{}})
+
+	// send(conn, Message[ConnectData]{Msg: "connect", Data: ConnectData{
+	// 	Profile: ProfileID{
+	// 		Id:      1,
+	// 		GroupId: 0,
+	// 	},
+	// }})
+	time.Sleep(3 * time.Second)
+	//
+	// send(conn, Message[EnableTunData]{Msg: "enable-tun", Data: EnableTunData{}})
+	// send(conn, Message[DisableTunData]{Msg: "disable-tun", Data: DisableTunData{}})
 
 	<-listen_finished
 	// select {}
