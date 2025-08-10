@@ -70,6 +70,5 @@ func GetHomeDir() (string, error) {
 		log.Fatal("failed to get user from uid")
 		return "", fmt.Errorf("failed to get user from uid %d: %w", uid, err)
 	}
-	log.Printf("using home directory:%v\n", user.HomeDir)
 	return user.HomeDir, nil
 }
