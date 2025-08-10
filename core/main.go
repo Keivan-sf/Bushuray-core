@@ -9,6 +9,7 @@ import (
 	tunmode "bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"fmt"
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
 	"os/signal"
@@ -16,6 +17,18 @@ import (
 )
 
 func main() {
+	log.Println("logs: ./core-debug.log")
+	log.Println("for unix you can run: tail -f ./core-debug.log")
+	log.SetOutput(&lumberjack.Logger{
+		Filename:   "core-debug.log",
+		MaxSize:    20,
+		MaxBackups: 1,
+		MaxAge:     0,
+		Compress:   false,
+	})
+
+	log.SetPrefix("debug: ")
+	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
 	stop_sig := make(chan bool, 1)
 	appconfig.LoadConfig()
 	database := db.DB{}

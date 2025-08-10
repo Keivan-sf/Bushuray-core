@@ -79,7 +79,6 @@ func (s *Server) BroadCast(msg []byte) {
 		length := make([]byte, 4)
 		binary.BigEndian.PutUint32(length, uint32(len(msg)))
 
-		// log.Println(string(msg))
 		_, err := conn.Write(length)
 		if err != nil {
 			log.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
@@ -101,11 +100,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 		s.mutex.Lock()
 		delete(s.clients, clientID)
 		s.mutex.Unlock()
-		fmt.Println("Disconnected:", clientID)
-	}()
-
-	defer func() {
-		fmt.Println("actually disconnected")
+		log.Println("Disconnected:", clientID)
 	}()
 
 	command_handler := cmd.Cmd{DB: s.DB, Conn: conn, BroadCast: s.BroadCast}
