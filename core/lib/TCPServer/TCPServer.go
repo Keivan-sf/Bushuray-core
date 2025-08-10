@@ -201,7 +201,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for test-profile%v", err)
 				return
 			}
-			command_handler.TestProfile(data, s.proxy_manager)
+			go command_handler.TestProfile(data, s.proxy_manager)
 
 		case "get-application-state":
 			var data structs.GetApplicationStateData

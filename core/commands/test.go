@@ -13,5 +13,5 @@ func (cmd *Cmd) TestProfile(data structs.TestProfileData, proxy_manager *proxy.P
 		cmd.warn("test-failed", err.Error())
 		return
 	}
-	go proxy_manager.TestProfile(profile)
+	proxy_manager.TestProfile(profile)
 }
