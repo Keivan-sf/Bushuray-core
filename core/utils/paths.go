@@ -72,3 +72,16 @@ func GetHomeDir() (string, error) {
 	}
 	return user.HomeDir, nil
 }
+
+func RemoveDuplicates(input []string) []string {
+	seen := make(map[string]struct{})
+	result := []string{}
+
+	for _, v := range input {
+		if _, ok := seen[v]; !ok {
+			seen[v] = struct{}{}
+			result = append(result, v)
+		}
+	}
+	return result
+}
