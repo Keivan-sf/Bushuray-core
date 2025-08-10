@@ -48,27 +48,36 @@ func (cmd *Cmd) enableTun(profile structs.Profile, tun_manager *tunmode.TunModeM
 }
 
 func resolveHostAndAddress(profile structs.Profile) ([]string, error) {
+	ipSet := make(map[string]bool)
 	var ipv4s []string
 	var errs []error
 	if profile.Host != "" {
 		resolved, err := utils.ResolveDomainIpv4(profile.Host)
-		if err == nil {
-			ipv4s = append(ipv4s, resolved...)
-		} else {
+		if err != nil {
 			errs = append(errs, err)
+		} else {
+			for _, ip := range resolved {
+				ipSet[ip] = true
+			}
 		}
 	}
 	if profile.Address != "" {
-		resolved, err := utils.ResolveDomainIpv4(profile.Address)
-		if err == nil {
-			ipv4s = append(ipv4s, resolved...)
-		} else {
+		resolved, err := utils.ResolveDomainIpv4(profile.Host)
+		if err != nil {
 			errs = append(errs, err)
+		} else {
+			for _, ip := range resolved {
+				ipSet[ip] = true
+			}
 		}
 	}
+
+	for ip := range ipSet {
+		ipv4s = append(ipv4s, ip)
+	}
+
 	if len(ipv4s) == 0 {
 		return ipv4s, fmt.Errorf("failed to resolve any ipv4s: %w", errors.Join(errs...))
 	}
-	log.Println("at the end2:", ipv4s)
 	return ipv4s, nil
 }
