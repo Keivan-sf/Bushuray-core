@@ -6,9 +6,18 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 )
 
+var subscription_mutex = sync.Mutex{}
+
 func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData) {
+	if subscription_mutex.TryLock() == false {
+		cmd.warn("command-ignored", "update-subscription")
+		return
+	}
+	defer subscription_mutex.Unlock()
+
 	group, err := cmd.DB.LoadGroupConfig(data.GroupId)
 	if err != nil {
 		cmd.warn("update-subscription-failed", "Failed to load group config for updating subscription")
