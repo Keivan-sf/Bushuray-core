@@ -62,7 +62,7 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 		return fmt.Errorf("there was an error setting up proxy ip routes %w", err)
 	}
 
-	err = setupDnsIpRoute(t.dns, t.default_interface_ip)
+	err = setupDnsIpRoutes(t.dns, t.default_interface_ip)
 	if err != nil {
 		t.clearNetworkRules()
 		return fmt.Errorf("there was an error setting up dns ip route %w", err)
@@ -139,7 +139,7 @@ func (t *TunModeManager) clearNetworkRules() error {
 	errs := []error{
 		deleteTunIpRoute(t.tun_name, t.tun_ip),
 		deleteTun(t.tun_name),
-		deleteDnsIpRoute(t.dns, t.default_interface_ip),
+		deleteDnsIpRoutes(t.dns, t.default_interface_ip),
 		cleanDnsHijackRules(t.default_interface, t.dns),
 		deleteProxyIpRoutes(t.proxy_ipv4s, t.default_interface_ip),
 	}

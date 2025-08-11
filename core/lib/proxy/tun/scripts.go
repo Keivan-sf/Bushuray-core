@@ -115,22 +115,24 @@ sudo ip tuntap del mode tun dev $TUN_NAME
 	return err
 }
 
-func setupDnsIpRoute(dns_ip string, interface_ip string) error {
+func setupDnsIpRoutes(dns_ip string, interface_ip string) error {
 	script := fmt.Sprintf(`
 set -e
 IFACE_IP="%s"
 DNS_IP="%s"
 ip route add $DNS_IP via $IFACE_IP
+ip route add 127.0.0.53 via $IFACE_IP
 	`, interface_ip, dns_ip)
 	_, err := runScriptWithSh(script)
 	return err
 }
 
-func deleteDnsIpRoute(dns_ip string, interface_ip string) error {
+func deleteDnsIpRoutes(dns_ip string, interface_ip string) error {
 	script := fmt.Sprintf(`
 IFACE_IP="%s"
 DNS_IP="%s"
 ip route del $DNS_IP via $IFACE_IP || true
+ip route del 127.0.0.53 via $IFACE_IP || true
 	`, interface_ip, dns_ip)
 	_, err := runScriptWithSh(script)
 	return err
