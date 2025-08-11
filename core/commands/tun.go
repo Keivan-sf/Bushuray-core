@@ -11,10 +11,16 @@ import (
 )
 
 func (cmd *Cmd) DisableTun(data structs.DisableTunData, tun_manager *tunmode.TunModeManager) {
+	ConnectionMutex.Lock()
+	defer ConnectionMutex.Unlock()
+
 	tun_manager.Stop()
 }
 
 func (cmd *Cmd) EnableTun(data structs.EnableTunData, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager) {
+	ConnectionMutex.Lock()
+	defer ConnectionMutex.Unlock()
+
 	log.Println("on enable tun")
 	status := proxy_manager.GetStatus()
 	if status.Connection != "connected" {

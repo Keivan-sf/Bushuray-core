@@ -8,11 +8,17 @@ import (
 )
 
 func (cmd *Cmd) Disconnect(data structs.DisconnectData, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager) {
+	ConnectionMutex.Lock()
+	defer ConnectionMutex.Unlock()
+
 	proxy_manager.Stop()
 	tun_manager.Stop()
 }
 
 func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager) {
+	ConnectionMutex.Lock()
+	defer ConnectionMutex.Unlock()
+
 	profile, err := cmd.DB.GetProfile(data.Profile.GroupId, data.Profile.Id)
 	if err != nil {
 		log.Println(err.Error())
