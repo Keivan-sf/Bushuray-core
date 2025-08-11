@@ -70,7 +70,5 @@ func resolveHostAndAddress(profile structs.Profile) ([]string, error) {
 		return ipv4s, fmt.Errorf("failed to resolve any ipv4s: %w", errors.Join(errs...))
 	}
 	unique_ips := utils.RemoveDuplicates(ipv4s)
-	log.Println("at the end2:", ipv4s)
-	log.Println("at the end unique:", unique_ips)
 	return unique_ips, nil
 }
