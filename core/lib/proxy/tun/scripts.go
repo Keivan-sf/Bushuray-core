@@ -176,3 +176,22 @@ ip route del default via $TUN_IP dev $TUN_NAME metric 1 || true
 	_, err := runScriptWithSh(script)
 	return err
 }
+
+func loosenRpFilter(tun_name string, deafult_interface_name string) error {
+	script := fmt.Sprintf(`
+TUN_NAME="%s"
+DEF_IFACE="%s"
+
+for IFACE in "$DEF_IFACE" "$TUN_NAME"; do
+    if ip link show "$IFACE" &>/dev/null; then
+        echo "Setting rp_filter=2 for $IFACE (temporary)"
+        sysctl -w net.ipv4.conf."$IFACE".rp_filter=2
+    else
+        echo "Warning: Interface '$IFACE' not found, skipping."
+    fi
+done
+	`, tun_name, deafult_interface_name)
+
+	_, err := runScriptWithSh(script)
+	return err
+}

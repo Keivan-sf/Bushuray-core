@@ -50,11 +50,6 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 		return fmt.Errorf("there was an error clearing network rules %w", err)
 	}
 
-	err = setupDnsHijackRules(t.default_interface, t.dns)
-	if err != nil {
-		return fmt.Errorf("there was an error setting up dns hijack rules %w", err)
-	}
-
 	err = createTun(t.tun_name, t.tun_ip)
 	if err != nil {
 		t.clearNetworkRules()
@@ -71,6 +66,17 @@ func (t *TunModeManager) Start(proxy_ipv4s []string, dns string) error {
 	if err != nil {
 		t.clearNetworkRules()
 		return fmt.Errorf("there was an error setting up dns ip route %w", err)
+	}
+
+	err = loosenRpFilter(t.tun_name, t.default_interface)
+	if err != nil {
+		t.clearNetworkRules()
+		return fmt.Errorf("there was an error setting up dns ip route %w", err)
+	}
+
+	err = setupDnsHijackRules(t.default_interface, t.dns)
+	if err != nil {
+		return fmt.Errorf("there was an error setting up dns hijack rules %w", err)
 	}
 
 	err = setupTunIpRoute(t.tun_name, t.tun_ip)
