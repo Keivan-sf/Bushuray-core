@@ -10,6 +10,7 @@ type DBAddProfileData struct {
 	Protocol string `json:"protocol"`
 	Address  string `json:"address,omitzero"`
 	Host     string `json:"host,omitzero"`
+	NanoID   string `json:"nano-id,omitzero"`
 }
 
 // commands and responses
@@ -112,6 +113,7 @@ type Group struct {
 type Profile struct {
 	Id         int    `json:"id"`
 	GroupId    int    `json:"group_id"`
+	NanoID     string `json:"nano-id,omitzero"`
 	Name       string `json:"name"`
 	Protocol   string `json:"protocol"`
 	Uri        string `json:"uri"`

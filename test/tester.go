@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -78,7 +77,7 @@ func main() {
 	go listen(conn, listen_finished)
 
 	// send(conn, Message[AddProfilesData]{Msg: "add-profiles", Data: AddProfilesData{
-	// 	Uris:    "vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]t.me/ConfigsHub\n vless://30f2d443-af46-4dd6-83c9-b5e17299ebd2@104.26.14.69:443?security=tls&sni=carlotta.shoorekeeper.cloudns.org&fp=chrome&type=ws&path=/&host=carlotta.shoorekeeper.cloudns.org&packetEncoding=xudp&encryption=none#[%F0%9F%87%A8%F0%9F%87%A6]different0name",
+	// 	Uris:    "",
 	// 	GroupId: 1}})
 	//
 	// send(conn, Message[DeleteProfiles]{Msg: "delete-profiles", Data: DeleteProfiles{
@@ -91,12 +90,12 @@ func main() {
 	// 	Id: 3,
 	// }})
 	//
-	for i := range 0 {
-		send(conn, Message[AddProfilesData]{Msg: "add-profiles", Data: AddProfilesData{
-			Uris:    "vless://034175fb-3436-49f3-8ec6-acc1d28b7268@api.dota.website:443?security=tls&sni=api.dota.website&alpn=http/1.1&allowInsecure=1&type=ws&path=/ws/639b01fc6d01f4e9f7e1f19c/D&host=sympathetic.dota.website&packetEncoding=xudp&encryption=none#%F0%9F%9A%80%20@Sm22oothVPN%20-%20D" + strconv.Itoa(i+3),
-			GroupId: 0}},
-		)
-	}
+	// for i := range 0 {
+	// 	send(conn, Message[AddProfilesData]{Msg: "add-profiles", Data: AddProfilesData{
+	// 		Uris:    "" + strconv.Itoa(i+3),
+	// 		GroupId: 0}},
+	// 	)
+	// }
 	//
 	// send(conn, Message[ConnectData]{Msg: "connect", Data: ConnectData{
 	// 	Profile: ProfileID{

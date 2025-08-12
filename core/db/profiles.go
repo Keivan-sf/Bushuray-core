@@ -101,6 +101,7 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 	profile := structs.Profile{
 		Id:       profile_id,
 		GroupId:  data.GroupId,
+		NanoID:   data.NanoID,
 		Name:     data.Name,
 		Protocol: data.Protocol,
 		Uri:      data.Uri,
