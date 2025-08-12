@@ -16,9 +16,12 @@ func (db *DB) UpdateProfile(profile structs.Profile) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	profile_config_path := db.GetProfileFilePath(profile.GroupId, profile.Id)
-	_, err := os.ReadFile(profile_config_path)
+	old_profile_data, err := db.getProfile(profile.GroupId, profile.Id)
 	if err != nil {
 		return fmt.Errorf("update error: Profile does not exist gid: %d, id: %d: %w", profile.GroupId, profile.Id, err)
+	}
+	if old_profile_data.NanoID != profile.NanoID {
+		return fmt.Errorf("update error gid: %d, id: %d: Profile nano id mismatch old: %s, new: %s", profile.GroupId, profile.Id, old_profile_data.NanoID, profile.NanoID)
 	}
 
 	profile_json, err := json.MarshalIndent(profile, "", " ")
@@ -101,6 +104,7 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 	profile := structs.Profile{
 		Id:       profile_id,
 		GroupId:  data.GroupId,
+		NanoID:   data.NanoID,
 		Name:     data.Name,
 		Protocol: data.Protocol,
 		Uri:      data.Uri,

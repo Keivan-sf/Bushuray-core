@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/matoous/go-nanoid/v2"
 	"os/exec"
 	"strings"
 	"unicode/utf8"
@@ -71,6 +72,7 @@ func getDBAddProfileDataFromURI(uri string, group_id int) (structs.DBAddProfileD
 		Host:     profile_metadata.Host,
 		Uri:      uri,
 		GroupId:  group_id,
+		NanoID:   generateNanoID(),
 	}
 	return profile_data, nil
 }
@@ -84,4 +86,8 @@ func decode64(str string) string {
 		return string(decoded)
 	}
 	return str
+}
+
+func generateNanoID() string {
+	return gonanoid.Must()
 }
