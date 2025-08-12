@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bushuray-core/lib"
+	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"io"
 	"log"
@@ -11,7 +12,7 @@ import (
 
 var subscription_mutex = sync.Mutex{}
 
-func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData) {
+func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData, proxy_manager *proxy.ProxyManager) {
 	if subscription_mutex.TryLock() == false {
 		cmd.warn("command-ignored", "update-subscription")
 		return
@@ -29,8 +30,15 @@ func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData) {
 		cmd.warn("update-subscription-failed", "Failed to get subscription content")
 		return
 	}
+
 	db_profiles := lib.GetDBAddProfileDatasFromStr(subscription_content, data.GroupId)
-	profiles, err := cmd.DB.UpdateGroupAndProfiles(data.GroupId, db_profiles)
+	status := proxy_manager.GetStatus()
+	keep_profile_id := 0
+	if status.Connection == "connected" && status.Profile.GroupId == data.GroupId {
+		keep_profile_id = status.Profile.Id
+	}
+
+	profiles, err := cmd.DB.UpdateGroupAndProfiles(data.GroupId, db_profiles, keep_profile_id)
 	if err != nil {
 		log.Println(err)
 		cmd.warn("update-subscription-failed", "Failed to add new subscription content to database")

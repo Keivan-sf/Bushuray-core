@@ -212,7 +212,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for update-subscription%v", err)
 				return
 			}
-			go command_handler.UpdateSubscription(data)
+			go command_handler.UpdateSubscription(data, s.proxy_manager)
 
 		case "enable-tun":
 			var data structs.EnableTunData

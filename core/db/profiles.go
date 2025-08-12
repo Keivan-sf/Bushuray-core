@@ -124,6 +124,7 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 	profile_added = structs.Profile{
 		Uri:        data.Uri,
 		GroupId:    data.GroupId,
+		NanoID:     data.NanoID,
 		Id:         profile_id,
 		Protocol:   profile.Protocol,
 		Name:       profile.Name,
