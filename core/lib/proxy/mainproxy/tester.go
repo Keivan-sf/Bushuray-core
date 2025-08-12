@@ -4,10 +4,11 @@ import (
 	"bushuray-core/lib"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	goproxy "golang.org/x/net/proxy"
@@ -68,23 +69,14 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 		Timeout:   5 * time.Second,
 	}
 	start_time := time.Now()
-	resp, err := client.Get("https://dns.google.com/resolve?name=google.com")
-	if err != nil {
-		return -1
-	}
+	_, err = client.Get("https://cp.cloudflare.com")
 	ping := time.Since(start_time)
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
+		log.Println(err)
 		return -1
 	}
 
-	bodyStr := strings.TrimSpace(string(body))
-
-	if bodyStr == "" {
-		return -1
-	}
 	return int(ping.Milliseconds())
 }
 
