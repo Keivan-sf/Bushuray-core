@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfileData) ([]structs.Profile, error) {
+func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfileData, keep_profile_id int) ([]structs.Profile, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	profiles_added := []structs.Profile{}
@@ -28,6 +28,16 @@ func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfi
 		return profiles_added, fmt.Errorf("Error reading directory: %w", err)
 	}
 
+	if keep_profile_id != 0 {
+		kept_profile, err := db.getProfile(group_id, keep_profile_id)
+		if err == nil {
+			group_config.LastId = keep_profile_id
+			profiles_added = append(profiles_added, kept_profile)
+		} else {
+			keep_profile_id = 0
+		}
+	}
+
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") || entry.Name() == "group_config.json" {
 			continue
@@ -35,6 +45,9 @@ func (db *DB) UpdateGroupAndProfiles(group_id int, profiles []structs.DBAddProfi
 		profile_id_str, _ := strings.CutSuffix(entry.Name(), ".json")
 		profile_id, err := strconv.Atoi(profile_id_str)
 		if err != nil {
+			continue
+		}
+		if profile_id == keep_profile_id {
 			continue
 		}
 		db.deleteProfile(group_id, profile_id)
