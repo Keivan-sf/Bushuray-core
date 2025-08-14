@@ -5,7 +5,6 @@ import (
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -71,7 +70,6 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	ping := time.Since(start_time)
 
 	if err != nil {
-		log.Println(err)
 		return -1
 	}
 
