@@ -4,9 +4,7 @@ import (
 	"bushuray-core/lib"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -72,7 +70,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	_, err = client.Get("https://cp.cloudflare.com")
 	ping := time.Since(start_time)
 
-	if err != nil && !errors.Is(err, io.EOF) {
+	if err != nil {
 		log.Println(err)
 		return -1
 	}
