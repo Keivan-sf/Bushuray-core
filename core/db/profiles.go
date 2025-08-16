@@ -9,12 +9,35 @@ import (
 	"syscall"
 )
 
+func (db *DB) RenameProfile(profile structs.ProfileID, name string) (structs.Profile, error) {
+	oldUmask := syscall.Umask(0)
+	defer syscall.Umask(oldUmask)
+
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	profile_data, err := db.getProfile(profile.GroupId, profile.Id)
+	if err != nil {
+		return profile_data, err
+	}
+
+	profile_data.Name = name
+	if err := db.updateProfile(profile_data); err != nil {
+		return profile_data, err
+	}
+	return profile_data, nil
+}
+
 func (db *DB) UpdateProfile(profile structs.Profile) error {
 	oldUmask := syscall.Umask(0)
 	defer syscall.Umask(oldUmask)
 
 	db.mu.Lock()
 	defer db.mu.Unlock()
+	return db.updateProfile(profile)
+}
+
+func (db *DB) updateProfile(profile structs.Profile) error {
 	profile_config_path := db.GetProfileFilePath(profile.GroupId, profile.Id)
 	old_profile_data, err := db.getProfile(profile.GroupId, profile.Id)
 	if err != nil {
