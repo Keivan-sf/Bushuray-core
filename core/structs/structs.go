@@ -93,6 +93,11 @@ type IsRootAnswer struct {
 	IsRoot bool
 }
 
+type UpdateProfileData struct {
+	Profile ProfileID
+	Name    string
+}
+
 // general types
 type DBConfig struct {
 	LastGroupId int `json:"last_group_id"`

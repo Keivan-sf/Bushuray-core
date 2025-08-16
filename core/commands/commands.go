@@ -47,6 +47,18 @@ func (cmd *Cmd) AddProfiles(data structs.AddProfilesData) {
 	cmd.send("profiles-added", profiles_added)
 }
 
+func (cmd *Cmd) UpdateProfile(data structs.UpdateProfileData) {
+	profile_data, err := cmd.DB.RenameProfile(data.Profile, data.Name)
+	if err != nil {
+		log.Printf("there was an error updating the profile with gid,id: %d,%d: %s", data.Profile.GroupId, data.Profile.Id, err.Error())
+		cmd.warn("update-profile-failed", "there was an error updating the profile")
+	}
+	profile_updated := structs.ProfileUpdated{
+		Profile: profile_data,
+	}
+	cmd.send("profile-updated", profile_updated)
+}
+
 func (cmd *Cmd) DeleteProfiles(data structs.DeleteProfilesData) {
 	var deleted structs.ProfilesDeleted
 	for _, profile := range data.Profiles {

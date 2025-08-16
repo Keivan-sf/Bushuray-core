@@ -238,6 +238,14 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			command_handler.IsRoot(data)
 
+		case "update-profile":
+			var data structs.UpdateProfileData
+			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {
+				log.Printf("Invalid body for update-profile%v", err)
+				return
+			}
+			command_handler.UpdateProfile(data)
+
 		default:
 			log.Println("Message not supported")
 		}
