@@ -14,6 +14,7 @@ type AppConfig struct {
 	HttpPort           int       `json:"http-port"`
 	CoreTCPPort        int       `json:"core-tcp-port"`
 	TestPortRange      PortRange `json:"test-port-range"`
+	TestURL            string    `json:"test-url"`
 	NoBackground       bool      `json:"no-background,omitzero"`
 	AutoConnectOnStart bool      `json:"auto-connect-on-start,omitzero"`
 }
@@ -36,6 +37,7 @@ func defaultConfig() AppConfig {
 		},
 		NoBackground:       false,
 		AutoConnectOnStart: false,
+		TestURL:            "https://cp.cloudflare.com",
 	}
 }
 
