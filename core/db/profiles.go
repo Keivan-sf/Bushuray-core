@@ -171,3 +171,20 @@ func (db *DB) UpdateLatestConnectedProfile(group_id int, id int) error {
 	err = db.saveDBConfig(db_config)
 	return err
 }
+
+func (db *DB) GetLatestConnectedProfile() (structs.Profile, error) {
+	latest_profile := structs.Profile{}
+	db_config, err := db.loadDBConfig()
+	if err != nil {
+		return latest_profile, err
+	}
+
+	profile_id := db_config.LatestConnectedProfile.Id
+	group_id := db_config.LatestConnectedProfile.GroupId
+	profile, err := db.GetProfile(group_id, profile_id)
+	if err != nil {
+		return latest_profile, err
+	}
+
+	return profile, nil
+}

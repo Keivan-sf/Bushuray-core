@@ -40,6 +40,9 @@ func main() {
 
 	server := TCPServer.NewServer(&database, &proxy_manager, &tun_manager, stop_sig)
 	server.Start()
+
+	connectOnStartup(&database, &proxy_manager)
+
 	go func() {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -57,4 +60,17 @@ func main() {
 		os.Exit(0)
 	}()
 	select {}
+}
+
+func connectOnStartup(database *db.DB, proxy_manager *proxy.ProxyManager) {
+	if appconfig.GetConfig().AutoConnectOnStart {
+		profile, err := database.GetLatestConnectedProfile()
+		if err != nil {
+			return
+		}
+		err = proxy_manager.Connect(profile)
+		if err != nil {
+			log.Fatal("failed to connect to profile on startup", err)
+		}
+	}
 }

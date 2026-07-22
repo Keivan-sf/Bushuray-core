@@ -10,10 +10,12 @@ import (
 )
 
 type AppConfig struct {
-	SocksPort     int       `json:"socks-port"`
-	HttpPort      int       `json:"http-port"`
-	CoreTCPPort   int       `json:"core-tcp-port"`
-	TestPortRange PortRange `json:"test-port-range"`
+	SocksPort          int       `json:"socks-port"`
+	HttpPort           int       `json:"http-port"`
+	CoreTCPPort        int       `json:"core-tcp-port"`
+	TestPortRange      PortRange `json:"test-port-range"`
+	NoBackground       bool      `json:"no-background,omitzero"`
+	AutoConnectOnStart bool      `json:"auto-connect-on-start,omitzero"`
 }
 
 type PortRange struct {
@@ -32,6 +34,8 @@ func defaultConfig() AppConfig {
 			Start: 3095,
 			End:   30120,
 		},
+		NoBackground:       false,
+		AutoConnectOnStart: false,
 	}
 }
 
