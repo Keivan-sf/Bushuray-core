@@ -100,7 +100,8 @@ type UpdateProfileData struct {
 
 // general types
 type DBConfig struct {
-	LastGroupId int `json:"last_group_id"`
+	LastGroupId            int       `json:"last_group_id"`
+	LatestConnectedProfile ProfileID `json:"latest_connected_profile"`
 }
 
 type GroupWithProfiles struct {

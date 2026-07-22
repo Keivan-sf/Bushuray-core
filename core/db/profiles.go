@@ -158,3 +158,16 @@ func (db *DB) addProfile(data structs.DBAddProfileData) (structs.Profile, error)
 
 	return profile_added, nil
 }
+
+func (db *DB) UpdateLatestConnectedProfile(group_id int, id int) error {
+	db_config, err := db.loadDBConfig()
+	if err != nil {
+		return err
+	}
+
+	db_config.LatestConnectedProfile.GroupId = group_id
+	db_config.LatestConnectedProfile.Id = id
+
+	err = db.saveDBConfig(db_config)
+	return err
+}

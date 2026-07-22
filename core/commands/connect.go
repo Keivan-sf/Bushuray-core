@@ -40,4 +40,9 @@ func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyMana
 	if was_tun_enabled {
 		cmd.enableTun(profile, tun_manager)
 	}
+
+	err = cmd.DB.UpdateLatestConnectedProfile(profile.GroupId, profile.Id)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
