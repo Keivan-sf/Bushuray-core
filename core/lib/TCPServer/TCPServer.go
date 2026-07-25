@@ -48,7 +48,6 @@ func (s *Server) Start() {
 
 	log.Println("server is listening on port", app_config.CoreTCPPort)
 
-	go s.handleTunModeStatusChange()
 	go s.handleStatusChange()
 	go s.handleTestResults()
 
@@ -70,26 +69,30 @@ func (s *Server) Start() {
 	}()
 }
 
+func writeFull(conn net.Conn, data []byte) error {
+	for len(data) > 0 {
+		n, err := conn.Write(data)
+		if err != nil {
+			return err
+		}
+		data = data[n:]
+	}
+	return nil
+}
+
 func (s *Server) BroadCast(msg []byte) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	packet := make([]byte, 4+len(msg))
+	binary.BigEndian.PutUint32(packet[:4], uint32(len(msg)))
+	copy(packet[4:], msg)
+
 	for clientID, conn := range s.clients {
-
-		length := make([]byte, 4)
-		binary.BigEndian.PutUint32(length, uint32(len(msg)))
-
-		_, err := conn.Write(length)
-		if err != nil {
-			log.Printf("Error sending length %d to %s: %v\n", length, clientID, err)
+		if err := writeFull(conn, packet); err != nil {
+			log.Printf("Error sending to %s: %v", clientID, err)
 			conn.Close()
-			continue
-		}
-		_, err = conn.Write(msg)
-		if err != nil {
-			log.Printf("Error sending %s to $%s: %v\n", msg, clientID, err)
-			conn.Close()
-			continue
+			delete(s.clients, clientID)
 		}
 	}
 }
