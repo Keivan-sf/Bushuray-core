@@ -1,7 +1,6 @@
-package lib
+package utils
 
 import (
-	"bushuray-core/utils"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -9,7 +8,7 @@ import (
 
 func ParseUri(uri string, socksport int, httpport int, tproxyport int) ([]byte, error) {
 	var parsed_config []byte
-	v2parserbin, err := utils.GetV2parserBin()
+	v2parserbin, err := GetV2parserBin()
 	if err != nil {
 		return parsed_config, fmt.Errorf("failed to parse: %w", err)
 	}

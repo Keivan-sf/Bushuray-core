@@ -1,11 +1,11 @@
 package mainproxy
 
 import (
-	"bushuray-core/lib"
 	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/config"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
+	"bushuray-core/utils"
 	"fmt"
 	"log"
 	"sync"
@@ -79,7 +79,7 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		tproxy_port = 13345
 	}
 
-	xray_config, err := lib.ParseUri(
+	xray_config, err := utils.ParseUri(
 		profile.Uri,
 		p.appConfig.SocksPort,
 		p.appConfig.HttpPort,

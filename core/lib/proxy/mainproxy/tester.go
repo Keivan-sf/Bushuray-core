@@ -1,9 +1,9 @@
 package mainproxy
 
 import (
-	"bushuray-core/lib"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
+	"bushuray-core/utils"
 	"fmt"
 	"net/http"
 	"time"
@@ -38,7 +38,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	if err != nil {
 		return -1
 	}
-	parsed, err := lib.ParseUri(profile.Uri, port, -1, -1)
+	parsed, err := utils.ParseUri(profile.Uri, port, -1, -1)
 	if err != nil {
 		return -1
 	}
