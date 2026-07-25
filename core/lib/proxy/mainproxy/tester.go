@@ -1,12 +1,13 @@
 package mainproxy
 
 import (
-	"bushuray-core/lib/proxy/xray"
-	"bushuray-core/structs"
-	"bushuray-core/utils"
 	"fmt"
 	"net/http"
 	"time"
+
+	"bushuray-core/lib/proxy/xray"
+	"bushuray-core/structs"
+	"bushuray-core/utils"
 
 	goproxy "golang.org/x/net/proxy"
 )
@@ -47,7 +48,11 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 		Exited: make(chan error),
 	}
 
-	xray_core.Start(parsed)
+	err = xray_core.Start(parsed)
+	if err != nil {
+		return -1
+	}
+
 	defer xray_core.Stop()
 	time.Sleep(1 * time.Second)
 

@@ -1,17 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"bushuray-core/db"
 	"bushuray-core/lib"
 	"bushuray-core/lib/TCPServer"
 	"bushuray-core/lib/config"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
-	"fmt"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
@@ -36,10 +37,15 @@ func main() {
 		log.Println("failed to load application config:", err, "using defaults")
 	}
 
+	dnsConfig, err := config.LoadDNSConfig()
+	if err != nil {
+		log.Println("failed to load application config:", err, "using defaults")
+	}
+
 	database := db.DB{}
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
-	proxy_manager.Init(appConfig)
+	proxy_manager.Init(appConfig, dnsConfig)
 
 	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig, appConfig.CoreTCPPort)
 	server.Start()

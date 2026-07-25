@@ -1,9 +1,13 @@
 package builder
 
+import "errors"
+
 type Builder struct {
 	coreJSON []byte
 	// There will be TUN config in future I guess
 }
+
+var ErrCoreIsNill = errors.New("core config is nil")
 
 func NewBuilder(core []byte) Builder {
 	// I want to copy there to dont change source bytes

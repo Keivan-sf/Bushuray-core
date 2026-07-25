@@ -23,9 +23,10 @@ type ProxyManager struct {
 	TestResultChannel chan TestResult
 	portPool          *portpool.PortPool
 	CurrentProfile    structs.Profile
+	dnsConfig         config.DNSConfig
 }
 
-func (p *ProxyManager) Init(appConfig config.AppConfig) {
+func (p *ProxyManager) Init(appConfig config.AppConfig, dnsConfig config.DNSConfig) {
 	p.status = structs.ProxyStatus{
 		Connection:   "disconnected",
 		IsTunEnabled: false,
@@ -41,6 +42,7 @@ func (p *ProxyManager) Init(appConfig config.AppConfig) {
 	}
 	test_port_range := appConfig.TestPortRange
 	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
+	p.dnsConfig = dnsConfig
 }
 
 func (p *ProxyManager) ChangeTunMode(tun_mode bool) error {
@@ -92,6 +94,9 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	}
 
 	builder := builder.NewBuilder(xrayCoreConfig)
+	if err := builder.ApplyDNS(p.dnsConfig); err != nil {
+		return err
+	}
 	xrayConfig := builder.Build()
 
 	if tun_mode {
