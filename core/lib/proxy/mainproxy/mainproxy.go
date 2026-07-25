@@ -6,6 +6,7 @@ import (
 	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
+	"fmt"
 	"log"
 	"sync"
 )
@@ -23,9 +24,12 @@ type ProxyManager struct {
 	testChannel       chan structs.Profile
 	TestResultChannel chan TestResult
 	portPool          *portpool.PortPool
+	IsTunEnabled      bool
+	CurrentProfile    structs.Profile
 }
 
 func (p *ProxyManager) Init() {
+	p.IsTunEnabled = false
 	p.status = structs.ProxyStatus{
 		Connection: "disconnected",
 	}
@@ -41,10 +45,23 @@ func (p *ProxyManager) Init() {
 	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
 }
 
-func (p *ProxyManager) Connect(profile structs.Profile) error {
+func (p *ProxyManager) ChangeTunMode(tun_mode bool) error {
+	if (tun_mode && p.IsTunEnabled) || (!tun_mode && !p.IsTunEnabled) {
+		return nil
+	}
+	if p.GetStatus().Connection != "connected" {
+		return fmt.Errorf("No profile is currently active")
+	}
+	current_profile := p.CurrentProfile
+
+	p.Stop()
+	return p.Connect(current_profile, tun_mode)
+}
+
+func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-
+	p.CurrentProfile = profile
 	if p.xray_core.IsRunning() {
 		p.xray_core.Stop()
 	}
@@ -54,22 +71,45 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 	}
 
 	if p.status.Connection == "connected" {
+		p.IsTunEnabled = false
 		p.status = structs.ProxyStatus{
 			Connection: "disconnected",
 		}
 		p.StatusChanged <- p.status
 	}
 
+	tproxy_port := -1
+	if tun_mode {
+		tproxy_port = 13345
+	}
+
 	app_config := appconfig.GetConfig()
-	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort)
+	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort, tproxy_port)
 	if err != nil {
 		return err
 	}
 
-	if err := p.xray_core.Start(xray_config); err != nil {
-		return err
+	if tun_mode {
+		err = p.prepareTunMode()
+		if err != nil {
+			return err
+		}
+		if err := p.xray_core.StartAsUser(xray_config, "bxray_tproxy"); err != nil {
+			return err
+		}
+		err = p.enableTun()
+		if err != nil {
+			log.Println("there was a problem enabling tun")
+		} else {
+			log.Println("successfully enabled tun")
+		}
+	} else {
+		if err := p.xray_core.Start(xray_config); err != nil {
+			return err
+		}
 	}
 
+	p.IsTunEnabled = tun_mode
 	p.status = structs.ProxyStatus{
 		Connection: "connected",
 		Profile:    profile,
@@ -84,6 +124,7 @@ func (p *ProxyManager) Connect(profile structs.Profile) error {
 				return
 			}
 			p.mu.Lock()
+			p.IsTunEnabled = true
 			p.status = structs.ProxyStatus{
 				Connection: "disconnected",
 			}
@@ -99,6 +140,8 @@ func (p *ProxyManager) Stop() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.xray_core.Stop()
+	p.disableTun()
+	p.IsTunEnabled = false
 	p.status = structs.ProxyStatus{
 		Connection: "disconnected",
 	}

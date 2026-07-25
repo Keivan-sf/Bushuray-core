@@ -39,7 +39,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	if err != nil {
 		return -1
 	}
-	parsed, err := lib.ParseUri(profile.Uri, port, -1)
+	parsed, err := lib.ParseUri(profile.Uri, port, -1, -1)
 	if err != nil {
 		return -1
 	}
