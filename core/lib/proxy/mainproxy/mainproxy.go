@@ -2,8 +2,8 @@ package mainproxy
 
 import (
 	"bushuray-core/lib"
-	appconfig "bushuray-core/lib/AppConfig"
 	portpool "bushuray-core/lib/PortPool"
+	"bushuray-core/lib/config"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"fmt"
@@ -14,6 +14,7 @@ import (
 type ProxyManager struct {
 	status            structs.ProxyStatus
 	mu                sync.Mutex
+	appConfig         config.AppConfig
 	xray_core         xray.XrayCore
 	StatusChanged     chan structs.ProxyStatus
 	testChannel       chan structs.Profile
@@ -22,11 +23,12 @@ type ProxyManager struct {
 	CurrentProfile    structs.Profile
 }
 
-func (p *ProxyManager) Init() {
+func (p *ProxyManager) Init(appConfig config.AppConfig) {
 	p.status = structs.ProxyStatus{
 		Connection:   "disconnected",
 		IsTunEnabled: false,
 	}
+	p.appConfig = appConfig
 	p.StatusChanged = make(chan structs.ProxyStatus)
 	test_channel := make(chan structs.Profile)
 	go p.listenForTests(test_channel)
@@ -35,7 +37,7 @@ func (p *ProxyManager) Init() {
 	p.xray_core = xray.XrayCore{
 		Exited: make(chan error),
 	}
-	test_port_range := appconfig.GetConfig().TestPortRange
+	test_port_range := appConfig.TestPortRange
 	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
 }
 
@@ -77,8 +79,12 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		tproxy_port = 13345
 	}
 
-	app_config := appconfig.GetConfig()
-	xray_config, err := lib.ParseUri(profile.Uri, app_config.SocksPort, app_config.HttpPort, tproxy_port)
+	xray_config, err := lib.ParseUri(
+		profile.Uri,
+		p.appConfig.SocksPort,
+		p.appConfig.HttpPort,
+		tproxy_port,
+	)
 	if err != nil {
 		return err
 	}

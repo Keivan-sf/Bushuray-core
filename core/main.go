@@ -3,16 +3,17 @@ package main
 import (
 	"bushuray-core/db"
 	"bushuray-core/lib"
-	"bushuray-core/lib/AppConfig"
 	"bushuray-core/lib/TCPServer"
+	"bushuray-core/lib/config"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"fmt"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
@@ -29,16 +30,21 @@ func main() {
 	log.SetPrefix("debug: ")
 	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
 	stop_sig := make(chan bool, 1)
-	appconfig.LoadConfig()
+
+	appConfig, err := config.Load()
+	if err != nil {
+		log.Println("failed to load application config:", err, "using defaults")
+	}
+
 	database := db.DB{}
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
-	proxy_manager.Init()
+	proxy_manager.Init(appConfig)
 
-	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig)
+	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig, appConfig.CoreTCPPort)
 	server.Start()
 
-	connectOnStartup(&database, &proxy_manager)
+	connectOnStartup(&database, &proxy_manager, appConfig.AutoConnectOnStart)
 
 	go func() {
 		sigs := make(chan os.Signal, 1)
@@ -58,8 +64,8 @@ func main() {
 	select {}
 }
 
-func connectOnStartup(database *db.DB, proxy_manager *proxy.ProxyManager) {
-	if appconfig.GetConfig().AutoConnectOnStart {
+func connectOnStartup(database *db.DB, proxy_manager *proxy.ProxyManager, autoConnect bool) {
+	if autoConnect {
 		profile, err := database.GetLatestConnectedProfile()
 		if err != nil {
 			return

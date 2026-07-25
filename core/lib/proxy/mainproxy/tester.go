@@ -2,7 +2,6 @@ package mainproxy
 
 import (
 	"bushuray-core/lib"
-	appconfig "bushuray-core/lib/AppConfig"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"fmt"
@@ -67,7 +66,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 		Timeout:   5 * time.Second,
 	}
 	start_time := time.Now()
-	_, err = client.Get(appconfig.GetConfig().TestURL)
+	_, err = client.Get(p.appConfig.TestURL)
 	ping := time.Since(start_time)
 
 	if err != nil {
