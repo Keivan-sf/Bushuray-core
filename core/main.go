@@ -31,7 +31,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
 	stop_sig := make(chan bool, 1)
 
-	appConfig, err := config.Load()
+	appConfig, err := config.LoadAppConfig()
 	if err != nil {
 		log.Println("failed to load application config:", err, "using defaults")
 	}

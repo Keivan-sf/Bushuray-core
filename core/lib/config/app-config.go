@@ -1,12 +1,11 @@
 package config
 
 import (
+	"bushuray-core/utils"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"bushuray-core/utils"
 )
 
 type AppConfig struct {
@@ -39,11 +38,7 @@ func defaultAppConfig() AppConfig {
 	}
 }
 
-func Load() (AppConfig, error) {
-	return readConfig()
-}
-
-func readConfig() (AppConfig, error) {
+func LoadAppConfig() (AppConfig, error) {
 	currentConfig := defaultAppConfig()
 	homeDir, err := utils.GetHomeDir()
 	if err != nil {
