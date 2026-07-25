@@ -1,14 +1,16 @@
 package mainproxy
 
 import (
+	"log"
+	"sync"
+
 	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/config"
+	"bushuray-core/lib/proxy/builder"
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"bushuray-core/utils"
 	"fmt"
-	"log"
-	"sync"
 )
 
 type ProxyManager struct {
@@ -79,7 +81,7 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		tproxy_port = 13345
 	}
 
-	xray_config, err := utils.ParseUri(
+	xrayCoreConfig, err := utils.ParseUri(
 		profile.Uri,
 		p.appConfig.SocksPort,
 		p.appConfig.HttpPort,
@@ -89,12 +91,15 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		return err
 	}
 
+	builder := builder.NewBuilder(xrayCoreConfig)
+	xrayConfig := builder.Build()
+
 	if tun_mode {
 		err = p.prepareTunMode()
 		if err != nil {
 			return err
 		}
-		if err := p.xray_core.StartAsUser(xray_config, "bxray_tproxy"); err != nil {
+		if err := p.xray_core.StartAsUser(xrayConfig, "bxray_tproxy"); err != nil {
 			return err
 		}
 		err = p.enableTun()
@@ -104,7 +109,7 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 			log.Println("successfully enabled tun")
 		}
 	} else {
-		if err := p.xray_core.Start(xray_config); err != nil {
+		if err := p.xray_core.Start(xrayConfig); err != nil {
 			return err
 		}
 	}
