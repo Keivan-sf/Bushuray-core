@@ -2,19 +2,18 @@ package cmd
 
 import (
 	proxy "bushuray-core/lib/proxy/mainproxy"
-	tunmode "bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"log"
 )
 
-func (cmd *Cmd) Disconnect(data structs.DisconnectData, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager) {
+func (cmd *Cmd) Disconnect(data structs.DisconnectData, proxy_manager *proxy.ProxyManager) {
 	ConnectionMutex.Lock()
 	defer ConnectionMutex.Unlock()
 
 	proxy_manager.Stop()
 }
 
-func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyManager, tun_manager *tunmode.TunModeManager) {
+func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyManager) {
 	ConnectionMutex.Lock()
 	defer ConnectionMutex.Unlock()
 
