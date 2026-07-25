@@ -68,7 +68,7 @@ func connectOnStartup(database *db.DB, proxy_manager *proxy.ProxyManager) {
 		if err != nil {
 			return
 		}
-		err = proxy_manager.Connect(profile)
+		err = proxy_manager.Connect(profile, false)
 		if err != nil {
 			log.Fatal("failed to connect to profile on startup", err)
 		}

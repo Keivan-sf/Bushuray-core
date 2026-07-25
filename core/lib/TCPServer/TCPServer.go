@@ -220,7 +220,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for enable-tun%v", err)
 				return
 			}
-			command_handler.EnableTun(data, s.proxy_manager, s.tun_namager)
+			command_handler.EnableTun(data, s.proxy_manager)
 
 		case "disable-tun":
 			var data structs.DisableTunData
@@ -228,7 +228,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 				log.Printf("Invalid body for disable-tun%v", err)
 				return
 			}
-			command_handler.DisableTun(data, s.tun_namager)
+			command_handler.DisableTun(data, s.proxy_manager)
 
 		case "is-root":
 			var data structs.IsRootData
