@@ -64,7 +64,7 @@ func ProxyGateway() error {
 
 	script := []string{
 		"iptables -t mangle -N BXRAY_MASK",
-		"iptables -t mangle -A BXRAY_MASK -m owner --gid-owner 24333 -j RETURN",
+		"iptables -t mangle -A BXRAY_MASK -m owner --gid-owner 23333 -j RETURN",
 	}
 
 	for _, subnet := range subnets {
@@ -81,7 +81,24 @@ func ProxyGateway() error {
 }
 
 func BypassDns() error {
-	script := `iptables -t mangle -I BXRAY_MASK 1 -p udp --dport 53 -j RETURN`
+	script := `
+iptables -t mangle -I BXRAY_MASK 1 -p udp --dport 53 -j RETURN
+iptables -t mangle -I BXRAY_MASK 1 -p tcp --dport 53 -j RETURN
+iptables -t mangle -I BXRAY 1 -p udp --dport 53 -j RETURN
+iptables -t mangle -I BXRAY 1 -p tcp --dport 53 -j RETURN`
+	_, err := runScriptWithSh(script)
+	return err
+}
+
+func HijackDns() error {
+	// Position 1 in BXRAY_MASK is reserved for the Xray process GID. DNS
+	// marking must come before LAN bypasses so requests to a local resolver
+	// such as 127.0.0.53 or a gateway address are intercepted as well.
+	script := `
+iptables -t mangle -I BXRAY_MASK 2 -p udp --dport 53 -j MARK --set-mark 127
+iptables -t mangle -I BXRAY_MASK 2 -p tcp --dport 53 -j MARK --set-mark 127
+iptables -t mangle -I BXRAY 1 -p udp --dport 53 -j TPROXY --on-port 13345 --tproxy-mark 127
+iptables -t mangle -I BXRAY 1 -p tcp --dport 53 -j TPROXY --on-port 13345 --tproxy-mark 127`
 	_, err := runScriptWithSh(script)
 	return err
 }

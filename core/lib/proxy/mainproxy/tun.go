@@ -1,6 +1,9 @@
 package mainproxy
 
-import tunscripts "bushuray-core/lib/proxy/mainproxy/scripts"
+import (
+	"bushuray-core/lib/config"
+	tunscripts "bushuray-core/lib/proxy/mainproxy/scripts"
+)
 
 func (p *ProxyManager) prepareTunMode() error {
 	return tunscripts.GenerateBxrayUser()
@@ -14,7 +17,11 @@ func (p *ProxyManager) enableTun() error {
 		tunscripts.ApplyMainRules,
 		tunscripts.ProxyGateway,
 		tunscripts.LoosenRpFilters,
-		tunscripts.BypassDns,
+	}
+	if p.dnsConfig.Mode == config.DNSModeSystem {
+		steps = append(steps, tunscripts.BypassDns)
+	} else {
+		steps = append(steps, tunscripts.HijackDns)
 	}
 
 	for _, step := range steps {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 
 	"bushuray-core/lib/config"
@@ -12,6 +13,8 @@ import (
 const (
 	xrayDNSTag            = "bushuray-dns"
 	xrayDNSRuleTag        = "bushuray-dns-routing"
+	xrayDNSHijackRuleTag  = "bushuray-dns-hijack-routing"
+	xrayDNSOutboundTag    = "bushuray-dns-out"
 	xrayDirectOutboundTag = "bushuray-dns-direct"
 	xrayProxyOutboundTag  = "proxy"
 )
@@ -41,21 +44,30 @@ func (b *Builder) ApplyDNS(dnsConfig config.DNSConfig) error {
 
 	switch dnsConfig.Mode {
 	case config.DNSModeSystem:
-		removeDNSRoutingRule(coreConfig)
+		removeDNSRoutingRules(coreConfig)
+		removeDNSOutbound(coreConfig)
 	case config.DNSModeProxy:
 		dns["tag"] = xrayDNSTag
 		proxyTag, err := ensureProxyOutboundTag(coreConfig)
 		if err != nil {
 			return err
 		}
-		applyDNSRoutingRule(coreConfig, proxyTag)
+		dnsOutboundTag, err := ensureDNSOutbound(coreConfig, dnsConfig, proxyTag)
+		if err != nil {
+			return err
+		}
+		applyDNSRoutingRules(coreConfig, proxyTag, dnsOutboundTag)
 	case config.DNSModeDirect:
 		dns["tag"] = xrayDNSTag
 		directTag, err := ensureDirectOutbound(coreConfig)
 		if err != nil {
 			return err
 		}
-		applyDNSRoutingRule(coreConfig, directTag)
+		dnsOutboundTag, err := ensureDNSOutbound(coreConfig, dnsConfig, "")
+		if err != nil {
+			return err
+		}
+		applyDNSRoutingRules(coreConfig, directTag, dnsOutboundTag)
 	}
 
 	coreConfig["dns"] = dns
@@ -88,11 +100,93 @@ func validateDNSConfig(dnsConfig config.DNSConfig) error {
 		return errors.New("DNS servers cannot be empty in proxy or direct mode")
 	}
 	for _, server := range dnsConfig.Servers {
-		if strings.TrimSpace(server) == "" {
+		server = strings.TrimSpace(server)
+		if server == "" {
 			return errors.New("DNS server address cannot be empty")
 		}
 	}
 	return nil
+}
+
+func ensureDNSOutbound(
+	coreConfig map[string]any,
+	dnsConfig config.DNSConfig,
+	proxyTag string,
+) (string, error) {
+	outbounds, err := getOutbounds(coreConfig)
+	if err != nil {
+		return "", err
+	}
+
+	for _, outboundValue := range outbounds {
+		outbound, ok := outboundValue.(map[string]any)
+		if !ok || stringValue(outbound["tag"]) != xrayDNSOutboundTag {
+			continue
+		}
+		if stringValue(outbound["protocol"]) != "dns" {
+			return "", fmt.Errorf("outbound tag %q is already used by protocol %q",
+				xrayDNSOutboundTag, stringValue(outbound["protocol"]))
+		}
+		configureDNSOutbound(outbound, dnsConfig, proxyTag)
+		return xrayDNSOutboundTag, nil
+	}
+
+	outbound := map[string]any{
+		"protocol": "dns",
+		"tag":      xrayDNSOutboundTag,
+	}
+	configureDNSOutbound(outbound, dnsConfig, proxyTag)
+	coreConfig["outbounds"] = append(outbounds, outbound)
+	return xrayDNSOutboundTag, nil
+}
+
+func configureDNSOutbound(
+	outbound map[string]any,
+	dnsConfig config.DNSConfig,
+	proxyTag string,
+) {
+	rules := []any{
+		map[string]any{
+			"action": "hijack",
+			"qType":  "1,28",
+		},
+	}
+	settings := map[string]any{"rules": rules}
+
+	// The built-in DNS resolver handles A and AAAA. Forward other traditional
+	// DNS record types to the first plain-IP upstream instead of returning an
+	// empty response.
+	if len(dnsConfig.Servers) > 0 {
+		server := strings.TrimSpace(dnsConfig.Servers[0])
+		if ip := net.ParseIP(server); ip != nil {
+			settings["rewriteAddress"] = ip.String()
+			settings["rules"] = append(rules, map[string]any{"action": "direct"})
+		}
+	}
+	outbound["settings"] = settings
+
+	if proxyTag != "" {
+		outbound["proxySettings"] = map[string]any{"tag": proxyTag}
+	} else {
+		delete(outbound, "proxySettings")
+	}
+}
+
+func removeDNSOutbound(coreConfig map[string]any) {
+	outbounds, err := getOutbounds(coreConfig)
+	if err != nil {
+		return
+	}
+	filtered := make([]any, 0, len(outbounds))
+	for _, outboundValue := range outbounds {
+		outbound, ok := outboundValue.(map[string]any)
+		if ok && stringValue(outbound["tag"]) == xrayDNSOutboundTag &&
+			stringValue(outbound["protocol"]) == "dns" {
+			continue
+		}
+		filtered = append(filtered, outboundValue)
+	}
+	coreConfig["outbounds"] = filtered
 }
 
 func ensureProxyOutboundTag(coreConfig map[string]any) (string, error) {
@@ -163,11 +257,18 @@ func getOutbounds(coreConfig map[string]any) ([]any, error) {
 	return outbounds, nil
 }
 
-func applyDNSRoutingRule(coreConfig map[string]any, outboundTag string) {
+func applyDNSRoutingRules(coreConfig map[string]any, outboundTag string, dnsOutboundTag string) {
 	routing := getOrCreateObject(coreConfig, "routing")
 	rules := getOrCreateArray(routing, "rules")
 
-	filteredRules := make([]any, 0, len(rules)+1)
+	filteredRules := make([]any, 0, len(rules)+2)
+	filteredRules = append(filteredRules, map[string]any{
+		"type":        "field",
+		"ruleTag":     xrayDNSHijackRuleTag,
+		"port":        "53",
+		"network":     "tcp,udp",
+		"outboundTag": dnsOutboundTag,
+	})
 	filteredRules = append(filteredRules, map[string]any{
 		"type":        "field",
 		"ruleTag":     xrayDNSRuleTag,
@@ -176,15 +277,18 @@ func applyDNSRoutingRule(coreConfig map[string]any, outboundTag string) {
 	})
 	for _, ruleValue := range rules {
 		rule, ok := ruleValue.(map[string]any)
-		if ok && stringValue(rule["ruleTag"]) == xrayDNSRuleTag {
-			continue
+		if ok {
+			tag := stringValue(rule["ruleTag"])
+			if tag == xrayDNSRuleTag || tag == xrayDNSHijackRuleTag {
+				continue
+			}
 		}
 		filteredRules = append(filteredRules, ruleValue)
 	}
 	routing["rules"] = filteredRules
 }
 
-func removeDNSRoutingRule(coreConfig map[string]any) {
+func removeDNSRoutingRules(coreConfig map[string]any) {
 	routing, ok := coreConfig["routing"].(map[string]any)
 	if !ok {
 		return
@@ -197,8 +301,11 @@ func removeDNSRoutingRule(coreConfig map[string]any) {
 	filteredRules := make([]any, 0, len(rules))
 	for _, ruleValue := range rules {
 		rule, ok := ruleValue.(map[string]any)
-		if ok && stringValue(rule["ruleTag"]) == xrayDNSRuleTag {
-			continue
+		if ok {
+			tag := stringValue(rule["ruleTag"])
+			if tag == xrayDNSRuleTag || tag == xrayDNSHijackRuleTag {
+				continue
+			}
 		}
 		filteredRules = append(filteredRules, ruleValue)
 	}
