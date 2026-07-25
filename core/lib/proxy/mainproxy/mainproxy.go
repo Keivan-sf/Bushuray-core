@@ -11,11 +11,6 @@ import (
 	"sync"
 )
 
-// connect -> can also switch
-// stop -> stops everything
-// getStatus -> status
-// test -> limit to 5 concurrent tests, but simple return interface
-
 type ProxyManager struct {
 	status            structs.ProxyStatus
 	mu                sync.Mutex
@@ -24,14 +19,13 @@ type ProxyManager struct {
 	testChannel       chan structs.Profile
 	TestResultChannel chan TestResult
 	portPool          *portpool.PortPool
-	IsTunEnabled      bool
 	CurrentProfile    structs.Profile
 }
 
 func (p *ProxyManager) Init() {
-	p.IsTunEnabled = false
 	p.status = structs.ProxyStatus{
-		Connection: "disconnected",
+		Connection:   "disconnected",
+		IsTunEnabled: false,
 	}
 	p.StatusChanged = make(chan structs.ProxyStatus)
 	test_channel := make(chan structs.Profile)
@@ -46,7 +40,7 @@ func (p *ProxyManager) Init() {
 }
 
 func (p *ProxyManager) ChangeTunMode(tun_mode bool) error {
-	if (tun_mode && p.IsTunEnabled) || (!tun_mode && !p.IsTunEnabled) {
+	if (tun_mode && p.status.IsTunEnabled) || (!tun_mode && !p.status.IsTunEnabled) {
 		return nil
 	}
 	if p.GetStatus().Connection != "connected" {
@@ -71,9 +65,9 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	}
 
 	if p.status.Connection == "connected" {
-		p.IsTunEnabled = false
 		p.status = structs.ProxyStatus{
-			Connection: "disconnected",
+			Connection:   "disconnected",
+			IsTunEnabled: false,
 		}
 		p.StatusChanged <- p.status
 	}
@@ -109,10 +103,10 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		}
 	}
 
-	p.IsTunEnabled = tun_mode
 	p.status = structs.ProxyStatus{
-		Connection: "connected",
-		Profile:    profile,
+		Connection:   "connected",
+		IsTunEnabled: tun_mode,
+		Profile:      profile,
 	}
 	p.StatusChanged <- p.status
 	log.Println("changing connection status to", p.status.Connection)
@@ -124,9 +118,9 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 				return
 			}
 			p.mu.Lock()
-			p.IsTunEnabled = true
 			p.status = structs.ProxyStatus{
-				Connection: "disconnected",
+				IsTunEnabled: false,
+				Connection:   "disconnected",
 			}
 			p.mu.Unlock()
 			p.StatusChanged <- p.status
@@ -141,9 +135,9 @@ func (p *ProxyManager) Stop() {
 	defer p.mu.Unlock()
 	p.xray_core.Stop()
 	p.disableTun()
-	p.IsTunEnabled = false
 	p.status = structs.ProxyStatus{
-		Connection: "disconnected",
+		IsTunEnabled: false,
+		Connection:   "disconnected",
 	}
 	p.StatusChanged <- p.status
 }

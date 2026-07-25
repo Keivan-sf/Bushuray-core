@@ -144,13 +144,10 @@ type Message[T any] struct {
 }
 
 type ProxyStatus struct {
-	Connection string  `json:"connection"`
-	Profile    Profile `json:"profile"`
+	Connection   string  `json:"connection"`
+	IsTunEnabled bool    `json:"is_tun_enabled"`
+	Profile      Profile `json:"profile"`
 }
 
 type DisableTunData struct{}
 type EnableTunData struct{}
-
-type TunStatus struct {
-	IsEnabled bool `json:"is_enabled"`
-}
