@@ -86,6 +86,15 @@ func BypassDns() error {
 	return err
 }
 
+func LoosenRpFilters() error {
+	script := `
+sysctl -w net.ipv4.conf.all.rp_filter=2
+sysctl -w net.ipv4.conf.default.rp_filter=2
+	`
+	_, err := runScriptWithSh(script)
+	return err
+}
+
 func CleanUp() error {
 	script := `
 iptables -t mangle -D PREROUTING -j BXRAY

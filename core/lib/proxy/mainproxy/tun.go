@@ -13,6 +13,7 @@ func (p *ProxyManager) enableTun() error {
 		tunscripts.MarkAndForwardPackets,
 		tunscripts.ApplyMainRules,
 		tunscripts.ProxyGateway,
+		tunscripts.LoosenRpFilters,
 		tunscripts.BypassDns,
 	}
 
