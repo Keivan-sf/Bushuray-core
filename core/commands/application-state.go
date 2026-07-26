@@ -14,10 +14,11 @@ func (cmd *Cmd) GetApplicationState(data structs.GetApplicationStateData, proxy_
 		return
 	}
 
+	proxyStatus := proxy_manager.GetStatus()
 	application_state := structs.ApplicationState{
 		Groups:           groups,
-		ConnectionStatus: proxy_manager.GetStatus(),
-		TunStatus:        proxy_manager.GetStatus().IsTunEnabled,
+		ConnectionStatus: proxyStatus,
+		TunStatus:        proxyStatus.IsTunEnabled,
 	}
 
 	cmd.send("application-state", application_state)

@@ -31,7 +31,9 @@ func (p *ProxyManager) Init(appConfig config.AppConfig, dnsConfig config.DNSConf
 		IsTunEnabled: false,
 	}
 	p.appConfig = appConfig
-	p.StatusChanged = make(chan structs.ProxyStatus)
+	// A mode switch publishes disconnected and connected states back-to-back.
+	// Buffer them so network delivery cannot block the proxy state transition.
+	p.StatusChanged = make(chan structs.ProxyStatus, 8)
 	test_channel := make(chan structs.Profile)
 	go p.listenForTests(test_channel)
 	p.testChannel = test_channel
