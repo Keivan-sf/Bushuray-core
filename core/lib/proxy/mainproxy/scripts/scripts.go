@@ -143,17 +143,26 @@ func inspectTProxyListener(tproxyPort int) (string, error) {
 	script := fmt.Sprintf(`
 set -e
 
-ss -H -lnt | awk '$4 ~ /:%d$/ { found=1 } END { exit !found }' || {
+tcp_listener=$(ss -H -lnt "sport = :%d" 2>&1) || {
+    echo "failed to inspect TCP port %d: $tcp_listener" >&2
+    exit 1
+}
+[ -n "$tcp_listener" ] || {
     echo "Xray is not listening for TCP on port %d" >&2
     exit 1
 }
-ss -H -lnu | awk '$4 ~ /:%d$/ { found=1 } END { exit !found }' || {
+udp_listener=$(ss -H -lnu "sport = :%d" 2>&1) || {
+    echo "failed to inspect UDP port %d: $udp_listener" >&2
+    exit 1
+}
+[ -n "$udp_listener" ] || {
     echo "Xray is not listening for UDP on port %d" >&2
     exit 1
 }
 
-echo "tcp,udp:%d"
-`, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort)
+echo "tcp=$tcp_listener"
+echo "udp=$udp_listener"
+`, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort)
 	return runScriptWithSh(script)
 }
 
@@ -197,17 +206,25 @@ iptables -t mangle -C OUTPUT -p udp -j BXRAY_MASK >/dev/null 2>&1 || {
     echo "missing UDP OUTPUT -> BXRAY_MASK hook" >&2
     exit 1
 }
-ss -H -lnt | awk '$4 ~ /:%d$/ { found=1 } END { exit !found }' || {
+tcp_listener=$(ss -H -lnt "sport = :%d" 2>&1) || {
+    echo "failed to inspect TCP port %d: $tcp_listener" >&2
+    exit 1
+}
+[ -n "$tcp_listener" ] || {
     echo "Xray is not listening for TCP on port %d" >&2
     exit 1
 }
-ss -H -lnu | awk '$4 ~ /:%d$/ { found=1 } END { exit !found }' || {
+udp_listener=$(ss -H -lnu "sport = :%d" 2>&1) || {
+    echo "failed to inspect UDP port %d: $udp_listener" >&2
+    exit 1
+}
+[ -n "$udp_listener" ] || {
     echo "Xray is not listening for UDP on port %d" >&2
     exit 1
 }
 
 echo "fwmark=127 table=102 hooks=BXRAY/BXRAY_MASK tproxy=tcp,udp:%d"
-`, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort)
+`, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort, tproxyPort)
 	return runScriptWithSh(script)
 }
 
