@@ -6,7 +6,6 @@ import (
 	"bushuray-core/lib/AppConfig"
 	"bushuray-core/lib/TCPServer"
 	proxy "bushuray-core/lib/proxy/mainproxy"
-	tunmode "bushuray-core/lib/proxy/tun"
 	"bushuray-core/structs"
 	"fmt"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
@@ -35,10 +34,8 @@ func main() {
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
 	proxy_manager.Init()
-	tun_manager := tunmode.TunModeManager{}
-	tun_manager.Init()
 
-	server := TCPServer.NewServer(&database, &proxy_manager, &tun_manager, stop_sig)
+	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig)
 	server.Start()
 
 	connectOnStartup(&database, &proxy_manager)
@@ -55,7 +52,6 @@ func main() {
 		}
 		log.Println(reason)
 		proxy_manager.Stop()
-		tun_manager.Stop()
 		server.BroadCast(lib.CreateJsonNotification("warn", structs.Warning{Key: "died", Content: reason}))
 		os.Exit(0)
 	}()
@@ -68,7 +64,7 @@ func connectOnStartup(database *db.DB, proxy_manager *proxy.ProxyManager) {
 		if err != nil {
 			return
 		}
-		err = proxy_manager.Connect(profile)
+		err = proxy_manager.Connect(profile, false)
 		if err != nil {
 			log.Fatal("failed to connect to profile on startup", err)
 		}

@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"os/user"
+	"strconv"
 	"sync"
+	"syscall"
 )
 
 type XrayCore struct {
@@ -19,6 +22,34 @@ type XrayCore struct {
 }
 
 func (x *XrayCore) Start(stdinPipe []byte) error {
+	return x.startWithCredential(stdinPipe, nil)
+}
+
+func (x *XrayCore) StartAsUser(stdinPipe []byte, username string) error {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return fmt.Errorf("failed to lookup user %s: %w", username, err)
+	}
+
+	uid, err := strconv.ParseUint(u.Uid, 10, 32)
+	if err != nil {
+		return fmt.Errorf("invalid uid %s: %w", u.Uid, err)
+	}
+
+	gid, err := strconv.ParseUint(u.Gid, 10, 32)
+	if err != nil {
+		return fmt.Errorf("invalid gid %s: %w", u.Gid, err)
+	}
+
+	cred := &syscall.Credential{
+		Uid: uint32(uid),
+		Gid: uint32(gid),
+	}
+
+	return x.startWithCredential(stdinPipe, cred)
+}
+
+func (x *XrayCore) startWithCredential(stdinPipe []byte, cred *syscall.Credential) error {
 	x.mu.Lock()
 	defer x.mu.Unlock()
 
@@ -33,8 +64,14 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, xraybin, "run")
-	stdin, err := cmd.StdinPipe()
 
+	if cred != nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Credential: cred,
+		}
+	}
+
+	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		cancel()
 		return fmt.Errorf("failed to get stdin %w", err)
@@ -73,7 +110,6 @@ func (x *XrayCore) Start(stdinPipe []byte) error {
 				// Channel is full or no reader, don't block
 			}
 		}
-
 	}()
 
 	return nil
@@ -89,7 +125,7 @@ func (x *XrayCore) Stop() {
 	if x.cmd != nil && x.cmd.Process != nil {
 		err := x.cmd.Process.Kill()
 		if err != nil {
-			log.Println("error killing proces", err)
+			log.Println("error killing process", err)
 		}
 	}
 	if x.cancel != nil {
