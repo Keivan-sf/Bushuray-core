@@ -1,6 +1,7 @@
 package mainproxy
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -10,7 +11,6 @@ import (
 	"bushuray-core/lib/proxy/xray"
 	"bushuray-core/structs"
 	"bushuray-core/utils"
-	"fmt"
 )
 
 type ProxyManager struct {
@@ -22,7 +22,6 @@ type ProxyManager struct {
 	testChannel       chan structs.Profile
 	TestResultChannel chan TestResult
 	portPool          *portpool.PortPool
-	CurrentProfile    structs.Profile
 	dnsConfig         config.DNSConfig
 }
 
@@ -38,36 +37,45 @@ func (p *ProxyManager) Init(appConfig config.AppConfig, dnsConfig config.DNSConf
 	p.testChannel = test_channel
 	p.TestResultChannel = make(chan TestResult)
 	p.xray_core = xray.XrayCore{
-		Exited: make(chan error),
+		Exited: make(chan error, 1),
 	}
 	test_port_range := appConfig.TestPortRange
 	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
 	p.dnsConfig = dnsConfig
+	if err := p.recoverPersistedTunMode(); err != nil {
+		log.Println("failed to recover persisted TUN state:", err)
+	}
 }
 
 func (p *ProxyManager) ChangeTunMode(tun_mode bool) error {
-	if (tun_mode && p.status.IsTunEnabled) || (!tun_mode && !p.status.IsTunEnabled) {
+	status := p.GetStatus()
+	if tun_mode == status.IsTunEnabled {
 		return nil
 	}
-	if p.GetStatus().Connection != "connected" {
+	if status.Connection != "connected" {
 		return fmt.Errorf("No profile is currently active")
 	}
-	current_profile := p.CurrentProfile
 
-	p.Stop()
-	return p.Connect(current_profile, tun_mode)
+	if err := p.Stop(); err != nil {
+		return err
+	}
+	return p.Connect(status.Profile, tun_mode)
 }
 
 func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.CurrentProfile = profile
+	if p.status.IsTunEnabled || tunStateExists() {
+		if err := p.disableTun(); err != nil {
+			return fmt.Errorf("disable previous TUN mode: %w", err)
+		}
+	}
 	if p.xray_core.IsRunning() {
 		p.xray_core.Stop()
 	}
 
 	p.xray_core = xray.XrayCore{
-		Exited: make(chan error),
+		Exited: make(chan error, 1),
 	}
 
 	if p.status.Connection == "connected" {
@@ -100,6 +108,7 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	xrayConfig := builder.Build()
 
 	if tun_mode {
+		log.Println("enabling TUN with Xray TProxy on port 13345; no TUN network interface will be created")
 		err = p.prepareTunMode()
 		if err != nil {
 			return err
@@ -107,12 +116,13 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 		if err := p.xray_core.StartAsUser(xrayConfig, "bxray_tproxy"); err != nil {
 			return err
 		}
+		log.Println("TUN Xray process started; configuring policy routing")
 		err = p.enableTun()
 		if err != nil {
-			log.Println("there was a problem enabling tun")
-		} else {
-			log.Println("successfully enabled tun")
+			p.xray_core.Stop()
+			return fmt.Errorf("enable TUN mode: %w", err)
 		}
+		log.Println("successfully enabled tun")
 	} else {
 		if err := p.xray_core.Start(xrayConfig); err != nil {
 			return err
@@ -127,35 +137,53 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	p.StatusChanged <- p.status
 	log.Println("changing connection status to", p.status.Connection)
 
-	go func() {
+	exited := p.xray_core.Exited
+	go func(exited <-chan error) {
 		for {
-			_, ok := <-p.xray_core.Exited
+			exitErr, ok := <-exited
 			if !ok {
 				return
 			}
 			p.mu.Lock()
+			if p.xray_core.Exited != exited {
+				p.mu.Unlock()
+				return
+			}
+			if p.status.IsTunEnabled || tunStateExists() {
+				if err := p.disableTun(); err != nil {
+					log.Println("failed to clean TUN mode after Xray exit:", err)
+				}
+			}
 			p.status = structs.ProxyStatus{
 				IsTunEnabled: false,
 				Connection:   "disconnected",
 			}
+			status := p.status
 			p.mu.Unlock()
-			p.StatusChanged <- p.status
+			p.StatusChanged <- status
+			if exitErr != nil {
+				log.Println("Xray exited:", exitErr)
+			}
 		}
-	}()
+	}(exited)
 
 	return nil
 }
 
-func (p *ProxyManager) Stop() {
+func (p *ProxyManager) Stop() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	var cleanupErr error
+	if p.status.IsTunEnabled || tunStateExists() {
+		cleanupErr = p.disableTun()
+	}
 	p.xray_core.Stop()
-	p.disableTun()
 	p.status = structs.ProxyStatus{
 		IsTunEnabled: false,
 		Connection:   "disconnected",
 	}
 	p.StatusChanged <- p.status
+	return wrapRollbackError(cleanupErr)
 }
 
 func (p *ProxyManager) GetStatus() structs.ProxyStatus {

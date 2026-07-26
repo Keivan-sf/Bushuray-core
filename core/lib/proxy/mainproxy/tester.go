@@ -45,7 +45,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	}
 
 	xray_core := xray.XrayCore{
-		Exited: make(chan error),
+		Exited: make(chan error, 1),
 	}
 
 	err = xray_core.Start(parsed)

@@ -63,7 +63,9 @@ func main() {
 			reason = "Received stop request , cleaning up..."
 		}
 		log.Println(reason)
-		proxy_manager.Stop()
+		if err := proxy_manager.Stop(); err != nil {
+			log.Println("failed to clean up proxy state:", err)
+		}
 		server.BroadCast(lib.CreateJsonNotification("warn", structs.Warning{Key: "died", Content: reason}))
 		os.Exit(0)
 	}()
