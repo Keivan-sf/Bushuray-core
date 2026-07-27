@@ -88,10 +88,12 @@ type Warning struct {
 
 type DieData struct{}
 
-type IsRootData struct{}
-type IsRootAnswer struct {
-	IsRoot bool
-}
+type (
+	IsRootData   struct{}
+	IsRootAnswer struct {
+		IsRoot bool
+	}
+)
 
 type UpdateProfileData struct {
 	Profile ProfileID
@@ -149,5 +151,7 @@ type ProxyStatus struct {
 	Profile      Profile `json:"profile"`
 }
 
-type DisableTunData struct{}
-type EnableTunData struct{}
+type (
+	DisableTunData struct{}
+	EnableTunData  struct{}
+)

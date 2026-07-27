@@ -4,7 +4,6 @@ import (
 	"bufio"
 	cmd "bushuray-core/commands"
 	"bushuray-core/db"
-	appconfig "bushuray-core/lib/AppConfig"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"encoding/binary"
@@ -23,27 +22,28 @@ type Server struct {
 	mutex         sync.Mutex
 	proxy_manager *proxy.ProxyManager
 	stop_sig      chan<- bool
+	coreTCPPort   int
 }
 
-func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool, coreTCPPort int) *Server {
 	return &Server{
 		DB:            database,
 		clients:       make(map[string]net.Conn),
 		proxy_manager: proxy_manager,
 		stop_sig:      stop_sig,
+		coreTCPPort:   coreTCPPort,
 	}
 }
 
 func (s *Server) Start() {
-	app_config := appconfig.GetConfig()
-	listen, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", app_config.CoreTCPPort))
+	listen, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", s.coreTCPPort))
 
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(0)
 	}
 
-	log.Println("server is listening on port", app_config.CoreTCPPort)
+	log.Println("server is listening on port", s.coreTCPPort)
 
 	go s.handleStatusChange()
 	go s.handleTestResults()

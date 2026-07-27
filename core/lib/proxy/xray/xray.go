@@ -65,10 +65,9 @@ func (x *XrayCore) startWithCredential(stdinPipe []byte, cred *syscall.Credentia
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, xraybin, "run")
 
-	if cred != nil {
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Credential: cred,
-		}
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Pdeathsig:  syscall.SIGTERM,
+		Credential: cred,
 	}
 
 	stdin, err := cmd.StdinPipe()
@@ -77,8 +76,8 @@ func (x *XrayCore) startWithCredential(stdinPipe []byte, cred *syscall.Credentia
 		return fmt.Errorf("failed to get stdin %w", err)
 	}
 
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	cmd.Stdout = log.Writer()
+	cmd.Stderr = log.Writer()
 
 	if err := cmd.Start(); err != nil {
 		cancel()
