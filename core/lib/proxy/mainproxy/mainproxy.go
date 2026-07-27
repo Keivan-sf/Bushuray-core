@@ -102,15 +102,6 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	}
 
 	builder := builder.NewBuilder(xrayCoreConfig)
-	if tun_mode {
-		compatibilityApplied, err := builder.ApplyTProxyNetworkCompatibility()
-		if err != nil {
-			return err
-		}
-		if compatibilityApplied {
-			log.Println("TUN config: added legacy network alias for Xray 26.3.x UDP compatibility")
-		}
-	}
 	if err := builder.ApplyDNS(p.dnsConfig); err != nil {
 		return err
 	}
