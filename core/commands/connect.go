@@ -10,7 +10,10 @@ func (cmd *Cmd) Disconnect(data structs.DisconnectData, proxy_manager *proxy.Pro
 	ConnectionMutex.Lock()
 	defer ConnectionMutex.Unlock()
 
-	proxy_manager.Stop()
+	if err := proxy_manager.Stop(); err != nil {
+		log.Println(err)
+		cmd.warn("disconnect-failed", "Failed to clean up TUN mode")
+	}
 }
 
 func (cmd *Cmd) Connect(data structs.ConnectData, proxy_manager *proxy.ProxyManager) {
@@ -53,6 +56,6 @@ func (cmd *Cmd) DisableTun(data structs.DisableTunData, proxy_manager *proxy.Pro
 
 	if err := proxy_manager.ChangeTunMode(false); err != nil {
 		log.Println(err.Error())
-		cmd.warn("disable-tun-failed", "Failed to reconnect")
+		cmd.warn("disable-tun-failed", "Failed to disable TUN mode")
 	}
 }

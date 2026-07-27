@@ -1,13 +1,13 @@
 package mainproxy
 
 import (
-	"bushuray-core/lib"
-	appconfig "bushuray-core/lib/AppConfig"
-	"bushuray-core/lib/proxy/xray"
-	"bushuray-core/structs"
 	"fmt"
 	"net/http"
 	"time"
+
+	"bushuray-core/lib/proxy/xray"
+	"bushuray-core/structs"
+	"bushuray-core/utils"
 
 	goproxy "golang.org/x/net/proxy"
 )
@@ -39,16 +39,20 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	if err != nil {
 		return -1
 	}
-	parsed, err := lib.ParseUri(profile.Uri, port, -1, -1)
+	parsed, err := utils.ParseUri(profile.Uri, port, -1, -1)
 	if err != nil {
 		return -1
 	}
 
 	xray_core := xray.XrayCore{
-		Exited: make(chan error),
+		Exited: make(chan error, 1),
 	}
 
-	xray_core.Start(parsed)
+	err = xray_core.Start(parsed)
+	if err != nil {
+		return -1
+	}
+
 	defer xray_core.Stop()
 	time.Sleep(1 * time.Second)
 
@@ -67,7 +71,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 		Timeout:   5 * time.Second,
 	}
 	start_time := time.Now()
-	_, err = client.Get(appconfig.GetConfig().TestURL)
+	_, err = client.Get(p.appConfig.TestURL)
 	ping := time.Since(start_time)
 
 	if err != nil {
