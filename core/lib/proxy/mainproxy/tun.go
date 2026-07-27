@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
-	"time"
 
 	"bushuray-core/lib/config"
 	tunscripts "bushuray-core/lib/proxy/mainproxy/scripts"
@@ -16,13 +14,6 @@ func (p *ProxyManager) prepareTunMode() error {
 }
 
 func (p *ProxyManager) enableTun() error {
-	log.Println("TUN setup: wait for Xray TCP/UDP listener on port 13345")
-	listener, err := tunscripts.WaitForTProxyListener(13345, 3*time.Second)
-	if err != nil {
-		return err
-	}
-	log.Println("TUN listener ready:", strings.TrimSpace(listener))
-
 	if err := p.beginTunMode(); err != nil {
 		return err
 	}
@@ -56,13 +47,7 @@ func (p *ProxyManager) enableTun() error {
 		}
 	}
 
-	log.Println("TUN setup: verify policy routing, netfilter hooks and Xray listener")
-	diagnostics, err := tunscripts.WaitForTunReady(13345, 3*time.Second)
-	if err != nil {
-		rollbackErr := p.rollbackTunMode()
-		return errors.Join(err, wrapRollbackError(rollbackErr))
-	}
-	log.Println("TUN ready:", strings.TrimSpace(diagnostics))
+	log.Println("TUN ready")
 	return nil
 }
 
