@@ -71,7 +71,7 @@ func ProxyGateway() error {
 	script := []string{
 		"set -e",
 		"iptables -t mangle -N BXRAY_MASK",
-		"iptables -t mangle -A BXRAY_MASK -m owner --gid-owner 23333 -j RETURN",
+		"iptables -t mangle -A BXRAY_MASK -m owner --gid-owner 24333 -j RETURN",
 	}
 
 	for _, subnet := range subnets {
