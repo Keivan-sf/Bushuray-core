@@ -151,10 +151,6 @@ type ProxyStatus struct {
 	Profile      Profile `json:"profile"`
 }
 
-type TunStatus struct {
-	IsEnabled bool `json:"is_enabled"`
-}
-
 type (
 	DisableTunData struct{}
 	EnableTunData  struct{}
