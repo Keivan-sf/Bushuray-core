@@ -8,7 +8,7 @@ import (
 func GenerateBxrayUser() error {
 	_, err := runScriptWithSh(`
 set -e
-grep -qw bxray_tproxy /etc/passwd || echo "bxray_tproxy:x:0:23333:::" >> /etc/passwd`)
+grep -qw bxray_tproxy /etc/passwd || echo "bxray_tproxy:x:0:24333:::" >> /etc/passwd`)
 	return err
 }
 
