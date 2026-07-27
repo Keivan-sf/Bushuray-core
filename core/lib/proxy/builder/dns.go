@@ -97,7 +97,7 @@ func validateDNSConfig(dnsConfig config.DNSConfig) error {
 		return nil
 	}
 	if len(dnsConfig.Servers) == 0 {
-		return errors.New("DNS servers cannot be empty in proxy or direct mode")
+		return errors.New("DNS servers cannot be empty in proxy or tun mode")
 	}
 	for _, server := range dnsConfig.Servers {
 		server = strings.TrimSpace(server)

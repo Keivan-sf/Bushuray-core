@@ -123,8 +123,6 @@ func CleanUp() error {
 	script := `
 set -e
 
-# Fail instead of silently claiming success when netfilter is unavailable or
-# the process has insufficient privileges.
 iptables -t mangle -S >/dev/null
 ip rule show >/dev/null
 
