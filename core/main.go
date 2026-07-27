@@ -37,7 +37,6 @@ func main() {
 		log.Println("failed to load application config:", err, "using defaults")
 	}
 
-	dnsConfig, err := config.LoadDNSConfig()
 	if err != nil {
 		log.Println("failed to load application config:", err, "using defaults")
 	}
@@ -45,7 +44,7 @@ func main() {
 	database := db.DB{}
 	database.Initialize()
 	proxy_manager := proxy.ProxyManager{}
-	proxy_manager.Init(appConfig, dnsConfig)
+	proxy_manager.Init(appConfig)
 
 	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig, appConfig.CoreTCPPort)
 	server.Start()

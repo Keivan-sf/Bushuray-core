@@ -16,11 +16,43 @@ type AppConfig struct {
 	TestURL            string    `json:"test-url"`
 	NoBackground       bool      `json:"no-background,omitzero"`
 	AutoConnectOnStart bool      `json:"auto-connect-on-start,omitzero"`
+	Dns                DNSConfig `json:"dns"`
 }
 
 type PortRange struct {
 	Start int `json:"start"`
 	End   int `json:"end"`
+}
+
+type DNSConfig struct {
+	Servers       []string         `json:"servers"`
+	QueryStrategy DNSQueryStrategy `json:"query-strategy"`
+	Mode          DNSMode          `json:"mode"`
+}
+
+type DNSQueryStrategy string
+
+const (
+	DNSUseIP     DNSQueryStrategy = "UseIP"
+	DNSUseIPv4   DNSQueryStrategy = "UseIPv4"
+	DNSUseIPv6   DNSQueryStrategy = "UseIPv6"
+	DNSUseSystem DNSQueryStrategy = "UseSystem"
+)
+
+type DNSMode string
+
+const (
+	DNSModeSystem DNSMode = "system"
+	DNSModeProxy  DNSMode = "proxy"
+	DNSModeDirect DNSMode = "direct"
+)
+
+func defaultDNSConfig() DNSConfig {
+	return DNSConfig{
+		Servers:       []string{"localhost"},
+		QueryStrategy: DNSUseSystem,
+		Mode:          DNSModeSystem,
+	}
 }
 
 func defaultAppConfig() AppConfig {
@@ -35,6 +67,11 @@ func defaultAppConfig() AppConfig {
 		NoBackground:       false,
 		AutoConnectOnStart: false,
 		TestURL:            "https://cp.cloudflare.com",
+		Dns: DNSConfig{
+			Servers:       []string{"localhost"},
+			QueryStrategy: DNSUseSystem,
+			Mode:          DNSModeSystem,
+		},
 	}
 }
 

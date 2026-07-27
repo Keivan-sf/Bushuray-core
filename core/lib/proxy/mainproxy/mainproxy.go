@@ -22,10 +22,9 @@ type ProxyManager struct {
 	testChannel       chan structs.Profile
 	TestResultChannel chan TestResult
 	portPool          *portpool.PortPool
-	dnsConfig         config.DNSConfig
 }
 
-func (p *ProxyManager) Init(appConfig config.AppConfig, dnsConfig config.DNSConfig) {
+func (p *ProxyManager) Init(appConfig config.AppConfig) {
 	p.status = structs.ProxyStatus{
 		Connection:   "disconnected",
 		IsTunEnabled: false,
@@ -41,7 +40,6 @@ func (p *ProxyManager) Init(appConfig config.AppConfig, dnsConfig config.DNSConf
 	}
 	test_port_range := appConfig.TestPortRange
 	p.portPool = portpool.CreatePortPool(test_port_range.Start, test_port_range.End)
-	p.dnsConfig = dnsConfig
 	if err := p.recoverPersistedTunMode(); err != nil {
 		log.Println("failed to recover persisted TUN state:", err)
 	}
@@ -102,7 +100,7 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 	}
 
 	builder := builder.NewBuilder(xrayCoreConfig)
-	if err := builder.ApplyDNS(p.dnsConfig); err != nil {
+	if err := builder.ApplyDNS(p.appConfig.Dns); err != nil {
 		return err
 	}
 	xrayConfig := builder.Build()

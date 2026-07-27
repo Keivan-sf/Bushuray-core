@@ -39,7 +39,7 @@ func (p *ProxyManager) enableTun() error {
 		{name: "configure OUTPUT routing", run: tunscripts.ProxyGateway},
 		{name: "loosen rp_filter", run: tunscripts.LoosenRpFilters},
 	}
-	if p.dnsConfig.Mode == config.DNSModeSystem {
+	if p.appConfig.Dns.Mode == config.DNSModeSystem {
 		steps = append(steps, tunStep{name: "bypass system DNS", run: tunscripts.BypassDns})
 	} else {
 		steps = append(steps, tunStep{name: "hijack DNS", run: tunscripts.HijackDns})
