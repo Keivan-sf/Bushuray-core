@@ -171,16 +171,17 @@ func (p *ProxyManager) Connect(profile structs.Profile, tun_mode bool) error {
 func (p *ProxyManager) Stop() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	var cleanupErr error
-	if p.status.IsTunEnabled || tunStateExists() {
-		cleanupErr = p.disableTun()
-	}
 	p.xray_core.Stop()
 	p.status = structs.ProxyStatus{
 		IsTunEnabled: false,
 		Connection:   "disconnected",
 	}
 	p.StatusChanged <- p.status
+
+	var cleanupErr error
+	if p.status.IsTunEnabled || tunStateExists() {
+		cleanupErr = p.disableTun()
+	}
 	return wrapRollbackError(cleanupErr)
 }
 

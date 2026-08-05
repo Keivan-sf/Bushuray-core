@@ -6,9 +6,36 @@ import (
 )
 
 func GenerateBxrayUser() error {
+	RemoveBxrayUser()
 	_, err := runScriptWithSh(`
 set -e
-grep -qw bxray_tproxy /etc/passwd || echo "bxray_tproxy:x:0:24333:::" >> /etc/passwd`)
+
+NOLOGIN="$(command -v nologin || true)"
+if [ -z "$NOLOGIN" ]; then
+	for candidate in /usr/sbin/nologin /sbin/nologin; do
+		if [ -x "$candidate" ]; then
+			NOLOGIN="$candidate"
+			break
+		fi
+	done
+fi
+
+if [ -z "$NOLOGIN" ]; then
+	exit 1
+fi
+
+getent group bxray_tproxy_g >/dev/null 2>&1 || groupadd -g 24333 bxray_tproxy_g
+id -u bxray_tproxy >/dev/null 2>&1 || useradd -o -u 0 -g bxray_tproxy_g -d /var/empty -s "$NOLOGIN" -M bxray_tproxy`)
+	return err
+}
+
+func RemoveBxrayUser() error {
+	_, err := runScriptWithSh(`
+set -e
+
+id -u bxray_tproxy >/dev/null 2>&1 && userdel bxray_tproxy || true
+getent group bxray_tproxy_g >/dev/null 2>&1 && groupdel bxray_tproxy_g || true
+getent group 24333 >/dev/null 2>&1 && groupdel "$(getent group 24333 | cut -d: -f1)" || true`)
 	return err
 }
 
@@ -120,6 +147,7 @@ sysctl -w net.ipv4.conf.default.rp_filter=2
 }
 
 func CleanUp() error {
+	RemoveBxrayUser()
 	script := `
 set -e
 
