@@ -17,21 +17,23 @@ import (
 )
 
 type Server struct {
-	clients       map[string]net.Conn
-	DB            *db.DB
-	mutex         sync.Mutex
-	proxy_manager *proxy.ProxyManager
-	stop_sig      chan<- bool
-	coreTCPPort   int
+	clients              map[string]net.Conn
+	DB                   *db.DB
+	mutex                sync.Mutex
+	proxy_manager        *proxy.ProxyManager
+	stop_sig             chan<- bool
+	coreTCPPort          int
+	removeFailedProfiles bool
 }
 
-func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool, coreTCPPort int) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool, coreTCPPort int, removeFailedProfiles bool) *Server {
 	return &Server{
-		DB:            database,
-		clients:       make(map[string]net.Conn),
-		proxy_manager: proxy_manager,
-		stop_sig:      stop_sig,
-		coreTCPPort:   coreTCPPort,
+		DB:                   database,
+		clients:              make(map[string]net.Conn),
+		proxy_manager:        proxy_manager,
+		stop_sig:             stop_sig,
+		coreTCPPort:          coreTCPPort,
+		removeFailedProfiles: removeFailedProfiles,
 	}
 }
 
