@@ -39,6 +39,7 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	if err != nil {
 		return -1
 	}
+	defer p.portPool.ReleasePort(port)
 	parsed, err := utils.ParseUri(profile.Uri, port, -1, -1)
 	if err != nil {
 		return -1
