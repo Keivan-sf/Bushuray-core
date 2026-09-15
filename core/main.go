@@ -46,7 +46,7 @@ func main() {
 	proxy_manager := proxy.ProxyManager{}
 	proxy_manager.Init(appConfig)
 
-	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig, appConfig.CoreTCPPort)
+	server := TCPServer.NewServer(&database, &proxy_manager, stop_sig, appConfig.CoreTCPPort, appConfig.RemoveFailedProfiles)
 	server.Start()
 
 	connectOnStartup(&database, &proxy_manager, appConfig.AutoConnectOnStart)

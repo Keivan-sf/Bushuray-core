@@ -9,14 +9,15 @@ import (
 )
 
 type AppConfig struct {
-	SocksPort          int       `json:"socks-port"`
-	HttpPort           int       `json:"http-port"`
-	CoreTCPPort        int       `json:"core-tcp-port"`
-	TestPortRange      PortRange `json:"test-port-range"`
-	TestURL            string    `json:"test-url"`
-	NoBackground       bool      `json:"no-background,omitzero"`
-	AutoConnectOnStart bool      `json:"auto-connect-on-start,omitzero"`
-	Dns                DNSConfig `json:"dns"`
+	SocksPort            int       `json:"socks-port"`
+	HttpPort             int       `json:"http-port"`
+	CoreTCPPort          int       `json:"core-tcp-port"`
+	TestPortRange        PortRange `json:"test-port-range"`
+	TestURL              string    `json:"test-url"`
+	NoBackground         bool      `json:"no-background,omitzero"`
+	AutoConnectOnStart   bool      `json:"auto-connect-on-start,omitzero"`
+	RemoveFailedProfiles bool      `json:"remove-failed-profiles,omitzero"`
+	Dns                  DNSConfig `json:"dns"`
 }
 
 type PortRange struct {
