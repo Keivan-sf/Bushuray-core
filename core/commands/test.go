@@ -15,3 +15,7 @@ func (cmd *Cmd) TestProfile(data structs.TestProfileData, proxy_manager *proxy.P
 	}
 	proxy_manager.TestProfile(profile)
 }
+
+func (cmd *Cmd) StopTests(proxy_manager *proxy.ProxyManager) {
+	proxy_manager.StopTests()
+}

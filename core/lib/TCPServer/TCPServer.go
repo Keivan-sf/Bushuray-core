@@ -200,6 +200,9 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 			}
 			go command_handler.TestProfile(data, s.proxy_manager)
 
+		case "stop-tests":
+			command_handler.StopTests(s.proxy_manager)
+
 		case "get-application-state":
 			var data structs.GetApplicationStateData
 			if err := json.Unmarshal(raw_tcp_message.Data, &data); err != nil {

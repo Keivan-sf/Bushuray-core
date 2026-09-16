@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 
 	portpool "bushuray-core/lib/PortPool"
 	"bushuray-core/lib/config"
@@ -19,8 +20,9 @@ type ProxyManager struct {
 	appConfig         config.AppConfig
 	xray_core         xray.XrayCore
 	StatusChanged     chan structs.ProxyStatus
-	testChannel       chan structs.Profile
+	testChannel       chan TestRequest
 	TestResultChannel chan TestResult
+	testGeneration    atomic.Uint64
 	portPool          *portpool.PortPool
 }
 
@@ -31,10 +33,10 @@ func (p *ProxyManager) Init(appConfig config.AppConfig) {
 	}
 	p.appConfig = appConfig
 	p.StatusChanged = make(chan structs.ProxyStatus)
-	test_channel := make(chan structs.Profile)
-	go p.listenForTests(test_channel)
-	p.testChannel = test_channel
 	p.TestResultChannel = make(chan TestResult)
+	test_channel := make(chan TestRequest)
+	p.testChannel = test_channel
+	go p.listenForTests(test_channel)
 	p.xray_core = xray.XrayCore{
 		Exited: make(chan error, 1),
 	}
