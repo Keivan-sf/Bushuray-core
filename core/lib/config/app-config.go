@@ -65,9 +65,10 @@ func defaultAppConfig() AppConfig {
 			Start: 3095,
 			End:   30120,
 		},
-		NoBackground:       false,
-		AutoConnectOnStart: false,
-		TestURL:            "https://cp.cloudflare.com",
+		NoBackground:         false,
+		AutoConnectOnStart:   false,
+		RemoveFailedProfiles: false,
+		TestURL:              "https://cp.cloudflare.com",
 		Dns: DNSConfig{
 			Servers:       []string{"localhost"},
 			QueryStrategy: DNSUseSystem,
