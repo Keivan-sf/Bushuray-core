@@ -60,6 +60,8 @@ type TestProfileData struct {
 	Profile ProfileID `json:"profile"`
 }
 
+type StopTestsData struct{}
+
 type ProfileUpdated struct {
 	Profile Profile `json:"profile"`
 }

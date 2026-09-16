@@ -13,24 +13,48 @@ import (
 )
 
 type TestResult struct {
-	Success bool
-	Profile structs.Profile
+	Success    bool
+	Profile    structs.Profile
+	Generation uint64
+}
+
+type TestRequest struct {
+	Profile    structs.Profile
+	Generation uint64
 }
 
 func (p *ProxyManager) TestProfile(profile structs.Profile) {
-	p.testChannel <- profile
+	p.testChannel <- TestRequest{
+		Profile:    profile,
+		Generation: p.testGeneration.Load(),
+	}
 }
 
-func (p *ProxyManager) listenForTests(tests_chan chan structs.Profile) {
+func (p *ProxyManager) StopTests() {
+	p.testGeneration.Add(1)
+}
+
+func (p *ProxyManager) IsCurrentTestGeneration(generation uint64) bool {
+	return p.testGeneration.Load() == generation
+}
+
+func (p *ProxyManager) listenForTests(tests_chan chan TestRequest) {
 	sem := make(chan struct{}, 5)
 
-	for profile := range tests_chan {
+	for req := range tests_chan {
+		if !p.IsCurrentTestGeneration(req.Generation) {
+			continue
+		}
 		sem <- struct{}{}
-		go func(profile structs.Profile) {
-			ping := p.test(profile)
-			p.sendTestResult(profile, ping)
+		if !p.IsCurrentTestGeneration(req.Generation) {
 			<-sem
-		}(profile)
+			continue
+		}
+		go func(req TestRequest) {
+			defer func() { <-sem }()
+			ping := p.test(req.Profile)
+			p.sendTestResult(req.Profile, ping, req.Generation)
+		}(req)
 	}
 }
 
@@ -82,9 +106,13 @@ func (p *ProxyManager) test(profile structs.Profile) int {
 	return int(ping.Milliseconds())
 }
 
-func (p *ProxyManager) sendTestResult(profile structs.Profile, ping int) {
+func (p *ProxyManager) sendTestResult(profile structs.Profile, ping int, generation uint64) {
+	if !p.IsCurrentTestGeneration(generation) {
+		return
+	}
 	profile.TestResult = ping
 	p.TestResultChannel <- TestResult{
-		Profile: profile,
+		Profile:    profile,
+		Generation: generation,
 	}
 }

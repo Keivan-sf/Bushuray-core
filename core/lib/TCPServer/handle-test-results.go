@@ -9,6 +9,9 @@ import (
 func (s *Server) handleTestResults() {
 	log.Println("listening to test results")
 	for result := range s.proxy_manager.TestResultChannel {
+		if !s.proxy_manager.IsCurrentTestGeneration(result.Generation) {
+			continue
+		}
 		err := s.DB.UpdateProfile(result.Profile)
 		if err != nil {
 			continue
