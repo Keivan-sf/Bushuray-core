@@ -4,6 +4,7 @@ import (
 	"bufio"
 	cmd "bushuray-core/commands"
 	"bushuray-core/db"
+	"bushuray-core/lib/config"
 	proxy "bushuray-core/lib/proxy/mainproxy"
 	"bushuray-core/structs"
 	"encoding/binary"
@@ -24,16 +25,18 @@ type Server struct {
 	stop_sig             chan<- bool
 	coreTCPPort          int
 	removeFailedProfiles bool
+	appConfig            config.AppConfig
 }
 
-func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool, coreTCPPort int, removeFailedProfiles bool) *Server {
+func NewServer(database *db.DB, proxy_manager *proxy.ProxyManager, stop_sig chan<- bool, appConfig config.AppConfig) *Server {
 	return &Server{
 		DB:                   database,
 		clients:              make(map[string]net.Conn),
 		proxy_manager:        proxy_manager,
 		stop_sig:             stop_sig,
-		coreTCPPort:          coreTCPPort,
-		removeFailedProfiles: removeFailedProfiles,
+		coreTCPPort:          appConfig.CoreTCPPort,
+		removeFailedProfiles: appConfig.RemoveFailedProfiles,
+		appConfig:            appConfig,
 	}
 }
 
@@ -105,7 +108,7 @@ func (s *Server) handleConnection(conn net.Conn, clientID string) {
 		log.Println("Disconnected:", clientID)
 	}()
 
-	command_handler := cmd.Cmd{DB: s.DB, Conn: conn, BroadCast: s.BroadCast}
+	command_handler := cmd.Cmd{DB: s.DB, Conn: conn, BroadCast: s.BroadCast, AppConfig: s.appConfig}
 	reader := bufio.NewReader(conn)
 
 	for {

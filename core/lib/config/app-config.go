@@ -9,15 +9,16 @@ import (
 )
 
 type AppConfig struct {
-	SocksPort            int       `json:"socks-port"`
-	HttpPort             int       `json:"http-port"`
-	CoreTCPPort          int       `json:"core-tcp-port"`
-	TestPortRange        PortRange `json:"test-port-range"`
-	TestURL              string    `json:"test-url"`
-	NoBackground         bool      `json:"no-background,omitzero"`
-	AutoConnectOnStart   bool      `json:"auto-connect-on-start,omitzero"`
-	RemoveFailedProfiles bool      `json:"remove-failed-profiles,omitzero"`
-	Dns                  DNSConfig `json:"dns"`
+	SocksPort             int       `json:"socks-port"`
+	HttpPort              int       `json:"http-port"`
+	CoreTCPPort           int       `json:"core-tcp-port"`
+	TestPortRange         PortRange `json:"test-port-range"`
+	TestURL               string    `json:"test-url"`
+	SubscriptionUserAgent string    `json:"subscription-user-agent"`
+	NoBackground          bool      `json:"no-background,omitzero"`
+	AutoConnectOnStart    bool      `json:"auto-connect-on-start,omitzero"`
+	RemoveFailedProfiles  bool      `json:"remove-failed-profiles,omitzero"`
+	Dns                   DNSConfig `json:"dns"`
 }
 
 type PortRange struct {
@@ -65,10 +66,11 @@ func defaultAppConfig() AppConfig {
 			Start: 3095,
 			End:   30120,
 		},
-		NoBackground:         false,
-		AutoConnectOnStart:   false,
-		RemoveFailedProfiles: false,
-		TestURL:              "https://cp.cloudflare.com",
+		NoBackground:          false,
+		AutoConnectOnStart:    false,
+		RemoveFailedProfiles:  false,
+		SubscriptionUserAgent: "",
+		TestURL:               "https://cp.cloudflare.com",
 		Dns: DNSConfig{
 			Servers:       []string{"localhost"},
 			QueryStrategy: DNSUseSystem,

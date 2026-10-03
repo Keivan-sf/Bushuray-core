@@ -25,7 +25,7 @@ func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData, proxy_ma
 		return
 	}
 
-	subscription_content, err := get(group.SubscriptionUrl)
+	subscription_content, err := get(group.SubscriptionUrl, cmd.AppConfig.SubscriptionUserAgent)
 	if err != nil {
 		cmd.warn("update-subscription-failed", "Failed to get subscription content")
 		return
@@ -48,8 +48,13 @@ func (cmd *Cmd) UpdateSubscription(data structs.UpdateSubscriptionData, proxy_ma
 
 }
 
-func get(url string) (string, error) {
-	resp, err := http.Get(url)
+func get(url string, userAgent string) (string, error) {
+	req, err := newSubscriptionRequest(url, userAgent)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -61,4 +66,19 @@ func get(url string) (string, error) {
 	}
 
 	return string(bodyBytes), nil
+}
+
+func newSubscriptionRequest(url string, userAgent string) (*http.Request, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if userAgent == "" {
+		req.Header["User-Agent"] = nil
+	} else {
+		req.Header.Set("User-Agent", userAgent)
+	}
+
+	return req, nil
 }

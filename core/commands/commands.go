@@ -3,6 +3,7 @@ package cmd
 import (
 	"bushuray-core/db"
 	"bushuray-core/lib"
+	"bushuray-core/lib/config"
 	"bushuray-core/structs"
 	"log"
 	"net"
@@ -12,6 +13,7 @@ type Cmd struct {
 	Conn      net.Conn
 	BroadCast func([]byte)
 	DB        *db.DB
+	AppConfig config.AppConfig
 }
 
 func (cmd *Cmd) DeleteGroup(data structs.DeleteGroupData) {
